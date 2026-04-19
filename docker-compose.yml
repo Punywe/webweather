@@ -19,6 +19,21 @@ services:
       - db_data:/var/lib/mysql
 
   # -------------------------
+  # phpMyAdmin Service
+  # -------------------------
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: weather_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+
+  # -------------------------
   # Backend Web Service (Port 8000)
   # -------------------------
   backend-web:
