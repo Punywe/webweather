@@ -7,7 +7,7 @@ export const CardCurrentMSN = () => {
     const [data, setData] = useState(null)
 
     useEffect(() => {
-        fetch('http://localhost:8000/getDataMSN/')
+        fetch('/api/getDataMSN/')
             .then(res => res.json())
             .then(resData => {
                 if(resData.data && resData.data.length > 0) {

@@ -51,7 +51,7 @@ export const RegisterModal = ({ isOpen, onClose }) => {
         setLoading(true);
         setError('');
         try {
-            const res = await fetch('http://localhost:8000/register/send-otp', {
+            const res = await fetch('/api/register/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: form.email }),
@@ -93,7 +93,7 @@ export const RegisterModal = ({ isOpen, onClose }) => {
         setLoading(true);
         setError('');
         try {
-            const res = await fetch('http://localhost:8000/register/verify-and-register', {
+            const res = await fetch('/api/register/verify-and-register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -119,7 +119,7 @@ export const RegisterModal = ({ isOpen, onClose }) => {
         setError('');
         setLoading(true);
         try {
-            const res = await fetch('http://localhost:8000/register/send-otp', {
+            const res = await fetch('/api/register/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: form.email }),

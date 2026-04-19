@@ -24,7 +24,7 @@ export const CardPre7day = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://localhost:8000/getPre7day/')
+        fetch('/api/getPre7day/')
             .then(res => res.json())
             .then(data => {
                 if(data && data.forecasts) {

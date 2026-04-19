@@ -26,7 +26,7 @@ const AddNode = () => {
 
         setIsSubmitting(true);
         try {
-            const response = await fetch('http://localhost:8000/addnode', {
+            const response = await fetch('/api/addnode', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

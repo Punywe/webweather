@@ -27,7 +27,7 @@ export const ChartWidget = ({ node, metric = 'temp' }) => {
         if (!node) return;
         
         // Fetch 24h
-        fetch(`http://localhost:8000/get24h/${node}`)
+        fetch(`/api/get24h/${node}`)
             .then(res => res.json())
             .then(data => {
                 setData24h(data.data);
@@ -35,7 +35,7 @@ export const ChartWidget = ({ node, metric = 'temp' }) => {
             .catch(err => console.error("Error fetching 24h data:", err));
             
         // Fetch 7day
-        fetch(`http://localhost:8000/get7day/${node}`)
+        fetch(`/api/get7day/${node}`)
             .then(res => res.json())
             .then(data => {
                 setData7d(data.data);

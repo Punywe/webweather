@@ -13,12 +13,12 @@ export const DownloadModal = ({ isOpen, onClose }) => {
     // Fetch limits and nodes
     useEffect(() => {
         if (isOpen) {
-            fetch('http://localhost:8000/api_download/limits')
+            fetch('/api/api_download/limits')
                 .then(res => res.json())
                 .then(data => setLimits(data))
                 .catch(err => console.error("Error fetching limits:", err));
                 
-            fetch('http://localhost:8000/getNameNode/')
+            fetch('/api/getNameNode/')
                 .then(res => res.json())
                 .then(data => {
                     setNodes(data.nodes);
@@ -47,7 +47,7 @@ export const DownloadModal = ({ isOpen, onClose }) => {
             return;
         }
 
-        const url = new URL("http://localhost:8000/api_download/");
+        const url = new URL("/api/api_download/", window.location.origin);
         url.searchParams.append('source', source);
         if (source === 'node') {
             url.searchParams.append('node_name', selectedNode);

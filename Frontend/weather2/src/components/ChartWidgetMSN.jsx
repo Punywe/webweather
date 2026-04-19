@@ -23,7 +23,7 @@ export const ChartWidgetMSN = ({ metric = 'temp' }) => {
 
     useEffect(() => {
         // Fetch 24h
-        fetch(`http://localhost:8000/getData24hmsn/`)
+        fetch(`/api/getData24hmsn/`)
             .then(res => res.json())
             .then(data => {
                 const mapped24h = data.data.map(item => ({
@@ -39,7 +39,7 @@ export const ChartWidgetMSN = ({ metric = 'temp' }) => {
             .catch(err => console.error("Error fetching 24h MSN data:", err));
             
         // Fetch 7day
-        fetch(`http://localhost:8000/get7dayMSN/`)
+        fetch(`/api/get7dayMSN/`)
             .then(res => res.json())
             .then(data => {
                 const reversedData = [...data.data].reverse();

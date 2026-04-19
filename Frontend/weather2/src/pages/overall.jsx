@@ -14,12 +14,12 @@ const Overall = () => {
         const fetchAllData = async () => {
             try {
                 // 1. Fetch all Node Names
-                const nameRes = await fetch('http://localhost:8000/getNameNode/');
+                const nameRes = await fetch('/api/getNameNode/');
                 const nameData = await nameRes.json();
                 const nodes = nameData.nodes;
 
                 // 2. Fetch all Node Data
-                const nodePromises = nodes.map(node => fetch(`http://localhost:8000/getDataNode/${node}`).then(res => res.json()));
+                const nodePromises = nodes.map(node => fetch(`/api/getDataNode/${node}`).then(res => res.json()));
                 const nodeResults = await Promise.all(nodePromises);
 
                 let totalTemp = 0, totalHum = 0, totalWind = 0;
@@ -44,7 +44,7 @@ const Overall = () => {
                 }
 
                 // 3. Fetch TMD Data
-                const tmdRes = await fetch('http://localhost:8000/getCurrentTMD/');
+                const tmdRes = await fetch('/api/getCurrentTMD/');
                 const tmdResult = await tmdRes.json();
                 if (tmdResult.data && tmdResult.data.length > 0) {
                     const tmd = tmdResult.data[0];
@@ -56,7 +56,7 @@ const Overall = () => {
                 }
 
                 // 4. Fetch MSN Data
-                const msnRes = await fetch('http://localhost:8000/getDataMSN/');
+                const msnRes = await fetch('/api/getDataMSN/');
                 const msnResult = await msnRes.json();
                 if (msnResult.data && msnResult.data.length > 0) {
                     const msn = msnResult.data[0];

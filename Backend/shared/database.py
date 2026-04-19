@@ -1,8 +1,9 @@
 import pymysql
+import os
 
 def get_connection():
     return pymysql.connect(
-        host="127.0.0.1",
+        host=os.getenv("DB_HOST", "127.0.0.1"),
         user="appuser",
         password="apppassword",
         db="weather",

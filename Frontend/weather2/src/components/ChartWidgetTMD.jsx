@@ -24,7 +24,7 @@ export const ChartWidgetTMD = ({ metric = 'temp' }) => {
 
     useEffect(() => {
         // Fetch 24h
-        fetch(`http://localhost:8000/getData24hTMD/`)
+        fetch(`/api/getData24hTMD/`)
             .then(res => res.json())
             .then(data => {
                 // Map ข้อมูล 24h จากรูปแบบ _tdm ให้ตรงกับ metric ใน config
@@ -41,7 +41,7 @@ export const ChartWidgetTMD = ({ metric = 'temp' }) => {
             .catch(err => console.error("Error fetching 24h TMD data:", err));
             
         // Fetch 7day
-        fetch(`http://localhost:8000/getDataTMD/`)
+        fetch(`/api/getDataTMD/`)
             .then(res => res.json())
             .then(data => {
                 // ข้อมูล 7 วันจาก API เรียงแบบ DESC (ใหม่ -> เก่า) จึงต้อง reverse เพื่อให้กราฟแสดงลำดับเวลาที่ถูกต้อง (ซ้าย -> ขวา)

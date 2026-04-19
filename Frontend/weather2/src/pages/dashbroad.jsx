@@ -39,7 +39,7 @@ const Dashboard = () => {
     }
 
     useEffect(() => {
-        fetch('http://localhost:8000/getNameNode/')
+        fetch('/api/getNameNode/')
             .then(res => {
                 return res.json()
             })
@@ -52,7 +52,7 @@ const Dashboard = () => {
     }, [])
     useEffect(() => {
         if (!selectedNode) return
-        fetch(`http://localhost:8000/getDataNode/${selectedNode}`)
+        fetch(`/api/getDataNode/${selectedNode}`)
             .then(res => {
                 return res.json()
             })

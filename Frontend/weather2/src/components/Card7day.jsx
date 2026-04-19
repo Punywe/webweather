@@ -9,7 +9,7 @@ export const Card7day = ({ node }) => {
     const [image, setImage] = useState([])
     useEffect(() => {
         if (!node) return
-        fetch(`http://localhost:8000/get7day/${node}`)
+        fetch(`/api/get7day/${node}`)
             .then(res => res.json())
             .then(data => {
                 setData(data.data)
