@@ -3,7 +3,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 payload = json.dumps({"username": "test", "password": "test"}).encode()
 req = urllib.request.Request(
-    "http://localhost:8000/login/",
+    "http://203.146.252.229:8000/login/",
     data=payload,
     headers={"Content-Type": "application/json"},
     method="POST"

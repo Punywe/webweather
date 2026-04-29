@@ -32,7 +32,7 @@ async def get_data_msn():
                 AVG(temperature_msn) as temperature_msn,
                 AVG(humidity_msn) as humidity_msn,
                 AVG(wind_speed_msn) as wind_speed_msn,
-                ANY_VALUE(weather_text_msn) as weather_text_msn,
+                MAX(weather_text_msn) as weather_text_msn,
                 AVG(pm25) as pm25
             FROM tb_msn
             WHERE DATE(date_time) <= DATE(%s)

@@ -32,7 +32,7 @@ async def get_data_tmd():
                 AVG(temperature_tdm) as temperature_tdm,
                 AVG(humidity_tdm) as humidity_tdm,
                 AVG(rain_tdm) as rain_tdm,
-                ANY_VALUE(weather_text_tdm) as weather_text_tdm,
+                MAX(weather_text_tdm) as weather_text_tdm,
                 AVG(wind_speed_tdm) as wind_speed_tdm
             FROM tb_tdm
             WHERE DATE(date_time) <= DATE(%s)

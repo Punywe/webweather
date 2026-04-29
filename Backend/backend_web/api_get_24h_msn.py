@@ -34,7 +34,7 @@ async def get_data_node():
                 AVG(humidity_msn) as humidity_msn,
                 AVG(wind_speed_msn) as wind_speed_msn,
                 AVG(pm25) as pm25,
-                ANY_VALUE(weather_text_msn) as weather_text_msn
+                MAX(weather_text_msn) as weather_text_msn
             FROM tb_msn
             WHERE date_time > %s - INTERVAL 24 HOUR
             AND date_time <= %s
