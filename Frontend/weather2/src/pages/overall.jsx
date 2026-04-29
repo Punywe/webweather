@@ -19,7 +19,7 @@ const Overall = () => {
                 const nodes = nameData.nodes;
 
                 // 2. Fetch all Node Data
-                const nodePromises = nodes.map(node => fetch(`/api/getDataNode/${node}`).then(res => res.json()));
+                const nodePromises = nodes.map(node => fetch(`/api/getDataNode/${node.node_name}`).then(res => res.json()));
                 const nodeResults = await Promise.all(nodePromises);
 
                 let totalTemp = 0, totalHum = 0, totalWind = 0;

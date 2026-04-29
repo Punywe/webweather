@@ -1,8 +1,8 @@
 import requests
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Dict, Any, Tuple, List
 
-UTC = timezone.utc
+TH_TZ = timezone(timedelta(hours=7))
 
 BASE_URL = "https://data.tmd.go.th/nwpapi/v1"
 
@@ -126,7 +126,7 @@ def _get(url: str, params: dict) -> dict:
 #     return records
 
 def fetch_daily_7day(lat: float, lon: float) -> dict:
-    now = datetime.now(UTC)
+    now = datetime.now(TH_TZ)
     url = f"{BASE_URL}/forecast/location/daily/at"
     params = {
         "lat": lat,
@@ -202,7 +202,7 @@ def _fmt(val, unit="", decimals=1) -> str:
 
 
 def print_daily_table(records: List[dict], area_label: str):
-    now_str = datetime.now(UTC).strftime("%Y-%m-%d %H:%M UTC")
+    now_str = datetime.now(TH_TZ).strftime("%Y-%m-%d %H:%M TH")
 
     print()
     print("=" * 76)

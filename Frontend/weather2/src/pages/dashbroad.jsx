@@ -226,7 +226,7 @@ const Dashboard = () => {
                     <CardToDay node={dataNode} />
                 </div>
 
-                <div className='bg-[#1E293B] w-full h-50 rounded-lg flex items-center justify-center p-2 overflow-x-auto gap-3'>
+                <div className='bg-[#1E293B] w-full h-50 rounded-lg flex items-center justify-start md:justify-center p-2 overflow-x-auto gap-3 touch-pan-x snap-x pb-3'>
                     <Card7day node={selectedNode} />
                 </div>
 
@@ -239,26 +239,26 @@ const Dashboard = () => {
 
             {/* Chart Area */}
             {/* Chart ตัวแรก */}
-            <div className='w-[95%] h-80 mt-4 min-w-0'>
+            <div className='w-[95%] h-96 lg:h-80 mt-4 min-w-0'>
                 <ChartWidget node={selectedNode} metric="temp" />
             </div>
 
             {/* Chart แถวที่สอง */}
             <div className='w-[95%] mt-4 flex flex-col lg:flex-row justify-center items-center gap-4'>
-                <div className='w-full lg:w-1/2 h-80 bg-[#1E293B] rounded-lg min-w-0'>
+                <div className='w-full lg:w-1/2 h-96 lg:h-80 bg-[#1E293B] rounded-lg min-w-0'>
                     <ChartWidget node={selectedNode} metric="humidity" />
                 </div>
-                <div className='w-full lg:w-1/2 h-80 bg-[#1E293B] rounded-lg min-w-0'>
+                <div className='w-full lg:w-1/2 h-96 lg:h-80 bg-[#1E293B] rounded-lg min-w-0'>
                     <ChartWidget node={selectedNode} metric="wind_speed" />
                 </div>
             </div>
 
             {/* Chart แถวที่สาม */}
             <div className='w-[95%] mt-4 flex flex-col lg:flex-row justify-center items-center gap-4'>
-                <div className='w-full lg:w-1/2 h-80 bg-[#1E293B] rounded-lg min-w-0'>
+                <div className='w-full lg:w-1/2 h-96 lg:h-80 bg-[#1E293B] rounded-lg min-w-0'>
                     <ChartWidget node={selectedNode} metric="pressure" />
                 </div>
-                <div className='w-full lg:w-1/2 h-80 bg-[#1E293B] rounded-lg min-w-0'>
+                <div className='w-full lg:w-1/2 h-96 lg:h-80 bg-[#1E293B] rounded-lg min-w-0'>
                     <ChartWidget node={selectedNode} metric="light" />
                 </div>
             </div>
@@ -274,16 +274,16 @@ const Dashboard = () => {
                     <p className='text-xl font-bold'>ข้อมูลทั้งหมด</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                    <div className="bg-[#1E293B] w-full h-80 rounded-lg flex items-center p-3">
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
                         <ChartWidgetTMD metric="temp"/>
                     </div>
-                    <div className="bg-[#1E293B] w-full h-80 rounded-lg flex items-center p-3">
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
                         <ChartWidgetTMD metric="humidity"/>
                     </div>
-                    <div className="bg-[#1E293B] w-full h-80 rounded-lg flex items-center p-3">
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
                         <ChartWidgetTMD metric="wind_speed"/>
                     </div>
-                    <div className="bg-[#1E293B] w-full h-80 rounded-lg flex items-center p-3">
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
                         <ChartWidgetTMD metric="rain"/>
                     </div>
                 </div>
@@ -301,16 +301,16 @@ const Dashboard = () => {
                     <p className='text-xl font-bold'>ข้อมูลทั้งหมด</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                    <div className="bg-[#1E293B] w-full h-80 rounded-lg flex items-center p-3">
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
                         <ChartWidgetMSN metric="temp"/>
                     </div>
-                    <div className="bg-[#1E293B] w-full h-80 rounded-lg flex items-center p-3">
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
                         <ChartWidgetMSN metric="humidity"/>
                     </div>
-                    <div className="bg-[#1E293B] w-full h-80 rounded-lg flex items-center p-3">
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
                         <ChartWidgetMSN metric="wind_speed"/>
                     </div>
-                    <div className="bg-[#1E293B] w-full h-80 rounded-lg flex items-center p-3">
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
                         <ChartWidgetMSN metric="pm25"/>
                     </div>
                 </div>

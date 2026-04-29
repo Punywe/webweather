@@ -78,11 +78,11 @@ export const ChartWidgetTMD = ({ metric = 'temp' }) => {
             </div>
 
             {chartData.length === 0 ? (
-                <div className="flex-1 flex justify-center items-center min-h-50">
+                <div className="flex-1 flex justify-center items-center min-h-[200px]">
                     <p className="text-gray-400">ไม่มีข้อมูล</p>
                 </div>
             ) : (
-                <div className="w-full h-62.5 md:h-75">
+                <div className="w-full flex-1 min-h-[200px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart
                             data={chartData}
