@@ -16,7 +16,7 @@ async def get_data_node(name_node: str):
         cursor = conn.cursor()
         # 2. ดึงข้อมูลล่าสุด 1 แถว
         cursor.execute("""
-            SELECT temp, humidity, wind_speed, date_time 
+            SELECT temp, humidity, wind_speed, date_time, rain_1h, rain_24h, pressure, 	light, wind_gust, wind_dir
             FROM tb_node 
             WHERE node_name = %s 
             ORDER BY date_time DESC 
@@ -34,7 +34,13 @@ async def get_data_node(name_node: str):
                 "temp": float(row["temp"]) if row["temp"] is not None else 0,
                 "humidity": float(row["humidity"]) if row["humidity"] is not None else 0,
                 "wind_speed": float(row["wind_speed"]) if row["wind_speed"] is not None else 0,
-                "date_time": row["date_time"].strftime("%Y-%m-%d %H:%M:%S")
+                "date_time": row["date_time"].strftime("%Y-%m-%d %H:%M:%S"),
+                "rain_1h": float(row["rain_1h"]) if row["rain_1h"] is not None else 0,
+                "rain_24h": float(row["rain_24h"]) if row["rain_24h"] is not None else 0,
+                "pressure": float(row["pressure"]) if row["pressure"] is not None else 0,
+                "light": float(row["light"]) if row["light"] is not None else 0,
+                "wind_gust": float(row["wind_gust"]) if row["wind_gust"] is not None else 0,
+                "wind_dir": float(row["wind_dir"]) if row["wind_dir"] is not None else 0,
             }]
         }
     except Exception as e:
