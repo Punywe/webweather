@@ -9,6 +9,8 @@ import { CardPre7day } from '../components/CardPre7day'
 import { ChartWidgetTMD } from '/src/components/ChartWidgetTMD.jsx'
 import { ChartWidgetMSN } from '/src/components/ChartWidgetMSN.jsx'
 import { CardCurrentMSN } from '/src/components/CardCurrentMSN.jsx'
+import { CardCurrentWeather } from '/src/components/CardCurrentWeather.jsx'
+import { ChartWidgetWeather } from '/src/components/ChartWidgetWeather.jsx'
 import { Menu, X } from 'lucide-react'
 import { RegisterModal } from '/src/components/RegisterModal.jsx'
 import { LoginModal } from '/src/components/LoginModal.jsx'
@@ -82,6 +84,7 @@ const Dashboard = () => {
                     <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center gap-8 text-sm font-medium text-gray-300 w-auto">
                         <p onClick={() => scrollToSection('home')} className='cursor-pointer hover:text-blue-400 transition-colors'>หน้าแรก</p>
                         <p onClick={() => scrollToSection('tmd')} className='cursor-pointer hover:text-blue-400 transition-colors'>กรมอุตุ</p>
+                        <p onClick={() => scrollToSection('weather')} className='cursor-pointer hover:text-blue-400 transition-colors'>Weather.com</p>
                         <p onClick={() => scrollToSection('msn')} className='cursor-pointer hover:text-blue-400 transition-colors'>MSN</p>
                         <Link to="/overall" className='cursor-pointer hover:text-blue-400 transition-colors'>ภาพรวม</Link>
                     </div>
@@ -147,6 +150,7 @@ const Dashboard = () => {
                         <div className="flex flex-col gap-4 text-[15px] font-medium text-gray-300 pl-2">
                             <p onClick={() => { scrollToSection('home'); setIsMobileMenuOpen(false); }} className='cursor-pointer hover:text-blue-400 transition-colors inline-block'>หน้าแรก</p>
                             <p onClick={() => { scrollToSection('tmd'); setIsMobileMenuOpen(false); }} className='cursor-pointer hover:text-blue-400 transition-colors inline-block'>กรมอุตุ</p>
+                            <p onClick={() => { scrollToSection('weather'); setIsMobileMenuOpen(false); }} className='cursor-pointer hover:text-blue-400 transition-colors inline-block'>Weather.com</p>
                             <p onClick={() => { scrollToSection('msn'); setIsMobileMenuOpen(false); }} className='cursor-pointer hover:text-blue-400 transition-colors inline-block'>MSN</p>
                             <Link to="/overall" className='cursor-pointer hover:text-blue-400 transition-colors inline-block'>ภาพรวม</Link>
                         </div>
@@ -285,6 +289,33 @@ const Dashboard = () => {
                     </div>
                     <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
                         <ChartWidgetTMD metric="rain"/>
+                    </div>
+                </div>
+            </div>
+
+            {/* ----------------------------------------- Weather ----------------------------------------- */}
+            <div id="weather" className='w-[95%] flex justify-start'>
+                <h1 className='text-3xl font-bold mt-8 text-blue-400 '>Weather.com</h1>
+            </div>
+            
+            <CardCurrentWeather />
+
+            <div className="bg-[#202124] w-[95%] h-auto mt-4 rounded-lg p-4">
+                <div className="bg-[#202124] w-full h-auto  p-4 border-b border-[#334155] ">
+                    <p className='text-xl font-bold'>ข้อมูลทั้งหมด</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
+                        <ChartWidgetWeather metric="temp"/>
+                    </div>
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
+                        <ChartWidgetWeather metric="humidity"/>
+                    </div>
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
+                        <ChartWidgetWeather metric="wind"/>
+                    </div>
+                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
+                        <ChartWidgetWeather metric="pressure"/>
                     </div>
                 </div>
             </div>

@@ -2,7 +2,10 @@ import sys
 import os
 from fastapi import APIRouter
 import datetime
+from datetime import timezone, timedelta
 import re # เพิ่มสำหรับสกัดตัวเลข
+
+THAILAND_TZ = timezone(timedelta(hours=7))
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -18,7 +21,7 @@ router = APIRouter(
 def extract_num(text):
     if text is None: return 0
     if isinstance(text, (int, float)): return text
-    match = re.search(r'[-?][\d]+(?:\.\d+)?', str(text))
+    match = re.search(r'-?\d+(?:\.\d+)?', str(text))
     return float(match.group()) if match else 0
 
 @router.post("/")
@@ -44,7 +47,7 @@ def add_weather():
             (date_time, temperature_w, wind_w, humidity_w, pressure_w)
             VALUES (%s, %s, %s, %s, %s)
         """, (
-            datetime.datetime.now(),
+            datetime.datetime.now(THAILAND_TZ),
             temp,
             wind,
             hum,

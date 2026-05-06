@@ -105,20 +105,27 @@ def fetch_hourly_at(lat: float, lon: float, date_str: str, hour: int, duration: 
 def normalize_latest_1(raw: dict, query: dict) -> dict:
     wf_list = raw.get("WeatherForecasts", [])
     if not wf_list:
-        return {"ok": False, "error": "no WeatherForecasts", "raw": raw}
+        return {"ok": False, "error": f"TMD API: No WeatherForecasts found for query {query}", "raw": raw}
 
     wf = wf_list[0]
     loc = wf.get("location", {})
     forecasts = wf.get("forecasts", [])
     if not forecasts:
-        return {"ok": False, "error": "no forecasts", "raw": raw}
+        return {"ok": False, "error": f"TMD API: No forecasts found in WeatherForecasts for query {query}", "raw": raw}
 
     f = forecasts[0]
     t = f.get("time")
     d = f.get("data", {})
 
+    if not d:
+        return {"ok": False, "error": f"TMD API: No data fields found in forecast for time {t}", "raw": raw}
+
     cond = d.get("cond")
     cond_text = COND_TH.get(cond) if isinstance(cond, int) else None
+    
+    # ถ้าไม่มีข้อความสภาพอากาศ ให้ระบุเป็น "ไม่ระบุ" แทนที่จะเป็น None เพื่อป้องกัน DB crash
+    if cond_text is None:
+        cond_text = f"ไม่ระบุ ({cond})" if cond is not None else "ไม่ระบุ"
 
     return {
         "ok": True,
@@ -150,6 +157,7 @@ def get_latest_1_hourly(lat: float, lon: float) -> dict:
 
     query = {"lat": lat, "lon": lon, "date": date_str, "hour": hour, "duration": 1}
 
+    last_err = "Initial fetch"
     try:
         raw = fetch_hourly_at(lat, lon, date_str, hour, duration=1)
         normalized = normalize_latest_1(raw, query)
@@ -159,6 +167,7 @@ def get_latest_1_hourly(lat: float, lon: float) -> dict:
     except Exception as e:
         last_err = str(e)
 
+    # Fallback to previous hour
     prev = now - timedelta(hours=1)
     date_str2 = prev.strftime("%Y-%m-%d")
     hour2 = prev.hour
@@ -171,11 +180,24 @@ def get_latest_1_hourly(lat: float, lon: float) -> dict:
         "fallback": True
     }
 
-    raw2 = fetch_hourly_at(lat, lon, date_str2, hour2, duration=1)
-    normalized2 = normalize_latest_1(raw2, query2)
-    if normalized2.get("ok"):
-        normalized2["note"] = f"used fallback (previous hour) because: {last_err}"
-    return normalized2
+    try:
+        raw2 = fetch_hourly_at(lat, lon, date_str2, hour2, duration=1)
+        normalized2 = normalize_latest_1(raw2, query2)
+        if normalized2.get("ok"):
+            normalized2["note"] = f"used fallback (previous hour) because: {last_err}"
+            return normalized2
+        
+        # If fallback also fails, return the error from fallback but mention the first error
+        final_err = normalized2.get("error", "fallback unknown error")
+        return {
+            "ok": False,
+            "error": f"TMD API Failed (Current & Fallback). Primary error: {last_err}. Fallback error: {final_err}"
+        }
+    except Exception as e:
+        return {
+            "ok": False,
+            "error": f"TMD API Exception. Primary: {last_err}. Fallback: {str(e)}"
+        }
 
 
 def main():

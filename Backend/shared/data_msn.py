@@ -16,6 +16,8 @@ def fetch_msn_data() -> dict:
     options.add_argument("--disable-dev-shm-usage")
 
     driver = webdriver.Chrome(options=options)
+    driver.set_page_load_timeout(30)
+    driver.set_script_timeout(30)
     try:
         driver.get("https://www.msn.com/th-th/weather/forecast/in-Phop-Phra")
 
