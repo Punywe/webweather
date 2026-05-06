@@ -14,6 +14,7 @@ from backend_db.sync_all import sync_all
 from backend_db.api_add_node import router as add_node_router
 from backend_db.api_add_tdm import router as add_tdm_router
 from backend_db.api_add_msn import router as add_msn_router
+from backend_db.api_add_weather import router as add_weather_router
 
 SYNC_INTERVAL = 30 * 60  # 30 นาที (วินาที)
 
@@ -56,6 +57,7 @@ app.add_middleware(
 app.include_router(add_node_router)
 app.include_router(add_tdm_router)
 app.include_router(add_msn_router)
+app.include_router(add_weather_router)
 
 
 if __name__ == "__main__":
