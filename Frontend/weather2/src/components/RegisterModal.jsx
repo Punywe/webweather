@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, Mail, Lock, User, ArrowRight, RefreshCw, CheckCircle } from 'lucide-react';
+import { X, Mail, Lock, User, ArrowRight, RefreshCw, CheckCircle, Eye, EyeOff } from 'lucide-react';
 
 export const RegisterModal = ({ isOpen, onClose }) => {
     const [step, setStep] = useState(1); // 1 = form, 2 = otp
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const today = new Date().toISOString().split('T')[0];
 
@@ -28,6 +30,8 @@ export const RegisterModal = ({ isOpen, onClose }) => {
                 setSuccess(false);
                 setOtp(['', '', '', '', '', '']);
                 setForm({ username: '', email: '', password: '', confirmPassword: '' });
+                setShowPassword(false);
+                setShowConfirmPassword(false);
             }, 300);
         }
     }, [isOpen]);
@@ -236,14 +240,23 @@ export const RegisterModal = ({ isOpen, onClose }) => {
                                     <Lock size={14} className="text-blue-400" />
                                     Password
                                 </label>
-                                <input
-                                    name="password"
-                                    type="password"
-                                    value={form.password}
-                                    onChange={handleFormChange}
-                                    placeholder="กรอก Password"
-                                    className="w-full bg-[#0F172A] text-white px-4 py-2.5 rounded-lg border border-[#334155] outline-none focus:border-blue-500 transition-colors placeholder:text-gray-600 text-sm"
-                                />
+                                <div className="relative">
+                                    <input
+                                        name="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={form.password}
+                                        onChange={handleFormChange}
+                                        placeholder="กรอก Password"
+                                        className="w-full bg-[#0F172A] text-white px-4 py-2.5 pr-11 rounded-lg border border-[#334155] outline-none focus:border-blue-500 transition-colors placeholder:text-gray-600 text-sm"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(v => !v)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Confirm Password */}
@@ -252,14 +265,23 @@ export const RegisterModal = ({ isOpen, onClose }) => {
                                     <Lock size={14} className="text-emerald-400" />
                                     ยืนยัน Password
                                 </label>
-                                <input
-                                    name="confirmPassword"
-                                    type="password"
-                                    value={form.confirmPassword}
-                                    onChange={handleFormChange}
-                                    placeholder="กรอก Password อีกครั้ง"
-                                    className="w-full bg-[#0F172A] text-white px-4 py-2.5 rounded-lg border border-[#334155] outline-none focus:border-blue-500 transition-colors placeholder:text-gray-600 text-sm"
-                                />
+                                <div className="relative">
+                                    <input
+                                        name="confirmPassword"
+                                        type={showConfirmPassword ? 'text' : 'password'}
+                                        value={form.confirmPassword}
+                                        onChange={handleFormChange}
+                                        placeholder="กรอก Password อีกครั้ง"
+                                        className="w-full bg-[#0F172A] text-white px-4 py-2.5 pr-11 rounded-lg border border-[#334155] outline-none focus:border-blue-500 transition-colors placeholder:text-gray-600 text-sm"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(v => !v)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                    >
+                                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                    </button>
+                                </div>
                             </div>
 
                             {error && <p className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-lg px-4 py-2.5">{error}</p>}
