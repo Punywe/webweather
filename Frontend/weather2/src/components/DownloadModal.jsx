@@ -98,6 +98,7 @@ export const DownloadModal = ({ isOpen, onClose }) => {
                                 <option value="node">Node Stations</option>
                                 <option value="tmd">TMD (กรมอุตุนิยมวิทยา)</option>
                                 <option value="msn">MSN (Microsoft Weather)</option>
+                                <option value="weather">Weather.com</option>
                             </select>
                             <span className="absolute right-4 top-4 text-gray-400 text-xs pointer-events-none">▼</span>
                          </div>

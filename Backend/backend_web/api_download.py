@@ -44,6 +44,14 @@ async def get_download_limits():
             "max": node["max_date"].strftime("%Y-%m-%d") if node and node["max_date"] else None
         }
 
+        # Weather.com
+        cursor.execute("SELECT MIN(date_time) as min_date, MAX(date_time) as max_date FROM tb_weather")
+        weather = cursor.fetchone()
+        limits["weather"] = {
+            "min": weather["min_date"].strftime("%Y-%m-%d") if weather and weather["min_date"] else None,
+            "max": weather["max_date"].strftime("%Y-%m-%d") if weather and weather["max_date"] else None
+        }
+
         return limits
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -108,8 +116,15 @@ async def download_csv_data(
             header = ["date_time", "temp", "humidity", "pressure", "light", "wind_speed", "wind_gust", "wind_dir", "rain_1h", "rain_24h"]
             filename = f"{node_name}_Data_{start_date}_to_{end_date}.csv"
 
+        elif source == "weather":
+            query = "SELECT date_time, temperature_w, humidity_w, wind_w, pressure_w FROM tb_weather WHERE date_time BETWEEN %s AND %s ORDER BY date_time ASC"
+            cursor.execute(query, (s_date, e_date))
+            data = cursor.fetchall()
+            header = ["date_time", "temperature_w", "humidity_w", "wind_w", "pressure_w"]
+            filename = f"WeatherCom_Data_{start_date}_to_{end_date}.csv"
+
         else:
-            raise HTTPException(status_code=400, detail="Invalid source. Must be tmd, msn, or node.")
+            raise HTTPException(status_code=400, detail="Invalid source. Must be tmd, msn, node, or weather.")
 
         if not data:
             # Still return an empty CSV with just headers if no data
