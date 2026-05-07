@@ -48,13 +48,20 @@ export const RegisterModal = ({ isOpen, onClose }) => {
             setError('รหัสผ่านไม่ตรงกัน');
             return;
         }
+        if (form.password.length < 8) {
+            setError('รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร');
+            return;
+        }
         setLoading(true);
         setError('');
         try {
             const res = await fetch('/api/register/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: form.email }),
+                body: JSON.stringify({ 
+                    username: form.username,
+                    email: form.email 
+                }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'เกิดข้อผิดพลาด');
@@ -122,7 +129,10 @@ export const RegisterModal = ({ isOpen, onClose }) => {
             const res = await fetch('/api/register/send-otp', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: form.email }),
+                body: JSON.stringify({ 
+                    username: form.username,
+                    email: form.email 
+                }),
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'เกิดข้อผิดพลาด');

@@ -6,6 +6,7 @@ const Overall = () => {
     const [averages, setAverages] = useState({ temp: 0, humidity: 0, wind_speed: 0 });
     const [tmdData, setTmdData] = useState({ temp: 0, humidity: 0, wind_speed: 0 });
     const [msnData, setMsnData] = useState({ temp: 0, humidity: 0, wind_speed: 0 });
+    const [weatherData, setWeatherData] = useState({ temp: 0, humidity: 0, wind_speed: 0 });
     const [loading, setLoading] = useState(true);
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -64,6 +65,18 @@ const Overall = () => {
                         temp: msn.temperature_msn || 0, 
                         humidity: msn.humidity_msn || 0, 
                         wind_speed: msn.wind_speed_msn || 0, 
+                    });
+                }
+
+                // 5. Fetch Weather.com Data
+                const weatherRes = await fetch('/api/getCurrentWeather/');
+                const weatherResult = await weatherRes.json();
+                if (weatherResult.data) {
+                    const weather = weatherResult.data;
+                    setWeatherData({
+                        temp: weather.temperature_w || 0,
+                        humidity: weather.humidity_w || 0,
+                        wind_speed: weather.wind_w || 0,
                     });
                 }
 
@@ -165,19 +178,20 @@ const Overall = () => {
         )
     };
 
-    const OverviewItem = ({ title, nodeVal, tmdVal, msnVal, unit, icon: Icon, colorClass }) => {
+    const OverviewItem = ({ title, nodeVal, tmdVal, msnVal, weatherVal, unit, icon: Icon, colorClass }) => {
         const diffTMD = calcDiff(nodeVal, tmdVal);
         const diffMSN = calcDiff(nodeVal, msnVal);
+        const diffWeather = calcDiff(nodeVal, weatherVal);
         return (
-            <div className="flex flex-col md:flex-row md:items-center justify-between p-5 border-b border-[#334155]/40 last:border-0 hover:bg-[#0F172A]/40 transition-colors">
-                <div className="flex items-center gap-3 mb-4 md:mb-0 w-48">
+            <div className="flex flex-col xl:flex-row xl:items-center justify-between p-5 border-b border-[#334155]/40 last:border-0 hover:bg-[#0F172A]/40 transition-colors">
+                <div className="flex items-center gap-3 mb-4 xl:mb-0 w-48">
                     <div className={`p-2 rounded-lg bg-[#1E293B] ${colorClass}`}>
                        <Icon size={20} />
                     </div>
                     <span className="font-semibold text-gray-200">{title}</span>
                 </div>
                 
-                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                      <div className="flex flex-col bg-[#1E293B]/60 p-4 rounded-xl border border-[#334155]/60 hover:border-blue-500/30 transition-colors">
                          <span className="text-xs text-gray-400 mb-2 font-medium">ส่วนต่างจาก กรมอุตุ</span>
                          <div className="flex justify-between items-center">
@@ -196,6 +210,16 @@ const Overall = () => {
                                  <span className="text-xs text-gray-500">vs {formatValue(msnVal)} {unit}</span>
                              </div>
                              {getDiffBadge(diffMSN)}
+                         </div>
+                     </div>
+                     <div className="flex flex-col bg-[#1E293B]/60 p-4 rounded-xl border border-[#334155]/60 hover:border-cyan-500/30 transition-colors">
+                         <span className="text-xs text-gray-400 mb-2 font-medium">ส่วนต่างจาก Weather.com</span>
+                         <div className="flex justify-between items-center">
+                             <div className="flex items-baseline gap-1">
+                                 <span className="text-lg font-bold text-gray-100">{formatValue(nodeVal)}</span>
+                                 <span className="text-xs text-gray-500">vs {formatValue(weatherVal)} {unit}</span>
+                             </div>
+                             {getDiffBadge(diffWeather)}
                          </div>
                      </div>
                 </div>
@@ -238,12 +262,12 @@ const Overall = () => {
                 )}
             </div>
 
-            <div className="w-[95%] max-w-5xl mt-12 pb-16">
+            <div className="w-[95%] max-w-7xl mt-12 pb-16">
                 <div className="mb-10 text-center">
                     <h1 className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-white to-gray-400 mb-3">
                         เปรียบเทียบข้อมูล
                     </h1>
-                    <p className="text-gray-400 text-lg">เปรียบเทียบค่าเฉลี่ยสถานี กับ API ภายนอก (กรมอุตุ & MSN)</p>
+                    <p className="text-gray-400 text-lg">เปรียบเทียบค่าเฉลี่ยสถานี กับ API ภายนอก (กรมอุตุ, MSN & Weather.com)</p>
                 </div>
 
                 {loading ? (
@@ -253,7 +277,7 @@ const Overall = () => {
                 ) : (
                     <div className="flex flex-col gap-8">
                         
-                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
                             {/* TMD Comparison Side-by-side */}
                             <SideBySideCompare 
                                 leftTitle="ค่าเฉลี่ยสถานี"
@@ -281,6 +305,20 @@ const Overall = () => {
                                 leftData={averages}
                                 rightData={msnData}
                             />
+
+                            {/* Weather.com Comparison Side-by-side */}
+                            <SideBySideCompare 
+                                leftTitle="ค่าเฉลี่ยสถานี"
+                                rightTitle="Weather.com"
+                                leftColorClass="bg-orange-500"
+                                rightColorClass="bg-cyan-500"
+                                leftBorderClass="border-t-orange-500"
+                                rightBorderClass="border-t-cyan-500"
+                                leftIcon={Database}
+                                rightIcon={CloudSun}
+                                leftData={averages}
+                                rightData={weatherData}
+                            />
                         </div>
 
                         {/* Summary / Overview Section */}
@@ -306,6 +344,7 @@ const Overall = () => {
                                     nodeVal={averages.temp} 
                                     tmdVal={tmdData.temp} 
                                     msnVal={msnData.temp} 
+                                    weatherVal={weatherData.temp}
                                 />
                                 <OverviewItem 
                                     title="ความชื้น" 
@@ -315,6 +354,7 @@ const Overall = () => {
                                     nodeVal={averages.humidity} 
                                     tmdVal={tmdData.humidity} 
                                     msnVal={msnData.humidity} 
+                                    weatherVal={weatherData.humidity}
                                 />
                                 <OverviewItem 
                                     title="ความเร็วลม"  
@@ -324,6 +364,7 @@ const Overall = () => {
                                     nodeVal={averages.wind_speed} 
                                     tmdVal={tmdData.wind_speed} 
                                     msnVal={msnData.wind_speed} 
+                                    weatherVal={weatherData.wind_speed}
                                 />
                             </div>
                         </div>
