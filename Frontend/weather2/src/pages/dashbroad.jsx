@@ -293,7 +293,7 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            {/* ----------------------------------------- Weather ----------------------------------------- */}
+            {/* ----------------------------------------- Weather.com ----------------------------------------- */}
             <div id="weather" className='w-[95%] flex justify-start'>
                 <h1 className='text-3xl font-bold mt-8 text-blue-400 '>Weather.com</h1>
             </div>
