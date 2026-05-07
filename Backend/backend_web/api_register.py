@@ -25,6 +25,7 @@ def hash_password(password: str) -> str:
 # ---------- Schemas ----------
 
 class SendOTPRequest(BaseModel):
+    username: str
     email: str
 
 class RegisterRequest(BaseModel):
@@ -37,13 +38,25 @@ class RegisterRequest(BaseModel):
 
 @router.post("/send-otp")
 async def send_otp_endpoint(body: SendOTPRequest):
-    """ส่ง OTP ไปยังอีเมลที่ระบุ"""
+    """ส่ง OTP ไปยังอีเมลที่ระบุ โดยตรวจสอบ Username/Email ซ้ำก่อน"""
+    conn = get_connection()
     try:
+        cursor = conn.cursor()
+        # 1. ตรวจสอบ Username/Email ซ้ำก่อนส่ง OTP
+        cursor.execute("SELECT id FROM tb_user WHERE username = %s OR email = %s", (body.username, body.email))
+        if cursor.fetchone():
+            raise HTTPException(status_code=409, detail="ชื่อผู้ใช้หรืออีเมลนี้ถูกใช้งานแล้ว")
+
+        # 2. ส่ง OTP
         otp = send_otp(body.email)
         _otp_store[body.email] = otp
         return {"message": "OTP sent successfully"}
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to send OTP: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process registration: {str(e)}")
+    finally:
+        if conn: conn.close()
 
 @router.post("/verify-and-register")
 async def verify_and_register(body: RegisterRequest):
