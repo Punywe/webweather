@@ -15,26 +15,11 @@ def sync_all(conn):
     """ดึงทุก node จาก DB แล้ว sync ทีละตัว + sync TDM & MSN"""
     print("🚀 sync_all: Starting full synchronization...")
 
-    # ---- 1) Sync Nodes (Google Sheet) ----
+    # ---- 1) Sync Nodes (Google Sheet → map Station ID) ----
     try:
-        cur = conn.cursor()
-        cur.execute("SELECT id, node_name, latitude, longitude, sheet_url, last_row FROM nodes")
-        nodes = cur.fetchall()
-
-        for node in nodes:
-            try:
-                sync_node(conn, {
-                    "id":        node["id"],
-                    "node_name": node["node_name"],
-                    "latitude":  node["latitude"],
-                    "longitude": node["longitude"],
-                    "sheet_url": node["sheet_url"],
-                    "last_row":  node["last_row"]
-                })
-            except Exception as e:
-                print(f"❌ [{node['node_name']}] Sync error: {e}")
+        sync_node(conn)
     except Exception as e:
-        print(f"❌ Nodes fetch error: {e}")
+        print(f"❌ Node sync error: {e}")
 
     # ---- 2) Sync TDM ----
     try:

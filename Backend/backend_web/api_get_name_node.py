@@ -12,9 +12,23 @@ async def get_name_node():
     conn = get_connection()
     try:
         cursor = conn.cursor()
-        cursor.execute("SELECT node_name,latitude,longitude FROM nodes")
+        cursor.execute("""
+            SELECT station_id, node_name, latitude, longitude
+            FROM nodes
+            ORDER BY node_name ASC
+        """)
         rows = cursor.fetchall()
-        return {"nodes": [{"node_name": row['node_name'], "latitude": row['latitude'], "longitude": row['longitude']} for row in rows]}
+        return {
+            "nodes": [
+                {
+                    "station_id": row["station_id"],
+                    "node_name":  row["node_name"],
+                    "latitude":   row["latitude"],
+                    "longitude":  row["longitude"],
+                }
+                for row in rows
+            ]
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     finally:

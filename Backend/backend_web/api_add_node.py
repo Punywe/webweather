@@ -1,47 +1,102 @@
-from fastapi import FastAPI, APIRouter, BackgroundTasks
+from fastapi import APIRouter, HTTPException
 from shared.database import get_connection
-from shared.node_sync import sync_node
 from pydantic import BaseModel
-import pymysql.cursors
 
-class Node(BaseModel):
+class DataNode(BaseModel):
+    station_id: str
     node_name: str
     latitude: float
     longitude: float
-    sheet_url: str
 
 router = APIRouter(
     prefix="/addnode",
     tags=["addnode"]
 )
 
-def background_sync(node_dict: dict):
+# ── POST: เพิ่ม node ใหม่ ──────────────────────────────────────────────────
+@router.post("/")
+async def add_node(data: DataNode):
     conn = get_connection()
     try:
-        sync_node(conn, node_dict)
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO nodes (station_id, node_name, latitude, longitude)
+            VALUES (%s, %s, %s, %s)
+        """, (data.station_id, data.node_name, data.latitude, data.longitude))
+        conn.commit()
+        return {"status": "ok", "message": f"เพิ่ม node '{data.node_name}' สำเร็จ"}
+
     except Exception as e:
-        print(f"Background sync error for new node: {e}")
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         conn.close()
 
-@router.post("/")
-async def add_node(node: Node, background_tasks: BackgroundTasks):
+# ── GET: รายการ node ทั้งหมด ──────────────────────────────────────────────
+@router.get("/")
+async def get_all_nodes():
+    conn = get_connection()
     try:
-        conn = get_connection()
-        cursor = conn.cursor(pymysql.cursors.DictCursor)
-        cursor.execute("INSERT INTO nodes (node_name, latitude, longitude, sheet_url) VALUES (%s, %s, %s, %s)", (node.node_name, node.latitude, node.longitude, node.sheet_url))
-        conn.commit()
-        
-        # Fetch the newly created node as dict
-        cursor.execute("SELECT id, node_name, latitude, longitude, sheet_url, last_row FROM nodes WHERE node_name = %s LIMIT 1", (node.node_name,))
-        new_node = cursor.fetchone()
-        
-        if new_node:
-            background_tasks.add_task(background_sync, new_node)
-
-        return {"message": "Node added successfully. Data sync has been started in the background."}
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT id, station_id, node_name, latitude, longitude, created_at
+            FROM nodes ORDER BY created_at DESC
+        """)
+        rows = cursor.fetchall()
+        return {"nodes": [
+            {
+                "id":         row["id"],
+                "station_id": row["station_id"],
+                "node_name":  row["node_name"],
+                "latitude":   row["latitude"],
+                "longitude":  row["longitude"],
+                "created_at": str(row["created_at"]),
+            }
+            for row in rows
+        ]}
     except Exception as e:
-        return {"error": str(e)}
-    finally:    
-        cursor.close()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+# ── PUT: แก้ไข node ──────────────────────────────────────────────────────
+@router.put("/{node_id}")
+async def update_node(node_id: int, data: DataNode):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE nodes
+            SET station_id = %s, node_name = %s, latitude = %s, longitude = %s
+            WHERE id = %s
+        """, (data.station_id, data.node_name, data.latitude, data.longitude, node_id))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="ไม่พบ node")
+        conn.commit()
+        return {"status": "ok", "message": "แก้ไข node สำเร็จ"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        conn.close()
+
+# ── DELETE: ลบ node ──────────────────────────────────────────────────────
+@router.delete("/{node_id}")
+async def delete_node(node_id: int):
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM nodes WHERE id = %s", (node_id,))
+        if cursor.rowcount == 0:
+            raise HTTPException(status_code=404, detail="ไม่พบ node")
+        conn.commit()
+        return {"status": "ok", "message": "ลบ node สำเร็จ"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
         conn.close()
