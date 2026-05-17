@@ -20,7 +20,7 @@ import { Link } from 'react-router-dom'
 
 const Dashboard = () => {
     const [node, setNode] = useState([])
-    const [selectedNode, setSelectedNode] = useState(null)
+    const [selectedNode, setSelectedNode] = useState("สวนทุเรียนแม่แจ๋ว")
     const [dataNode, setDataNode] = useState([])
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isStationDropdownOpen, setIsStationDropdownOpen] = useState(false)
@@ -28,11 +28,26 @@ const Dashboard = () => {
     const [isDownloadOpen, setIsDownloadOpen] = useState(false)
     const [isLoginOpen, setIsLoginOpen] = useState(false)
     const [loggedInUser, setLoggedInUser] = useState(() => {
-        try { return JSON.parse(localStorage.getItem('weather_user')) ?? null } catch { return null }
+        try { 
+            const data = JSON.parse(localStorage.getItem('weather_user'));
+            if (data) {
+                if (data.loginTime) {
+                    if (new Date().getTime() - data.loginTime > 30 * 60 * 1000) {
+                        localStorage.removeItem('weather_user');
+                        return null;
+                    }
+                    return data.user;
+                } else {
+                    return data; // Fallback
+                }
+            }
+            return null;
+        } catch { return null }
     })
 
     const handleLoginSuccess = (user) => {
-        localStorage.setItem('weather_user', JSON.stringify(user))
+        const sessionData = { user: user, loginTime: new Date().getTime() };
+        localStorage.setItem('weather_user', JSON.stringify(sessionData))
         setLoggedInUser(user)
     }
     const handleLogout = () => {
@@ -72,39 +87,140 @@ const Dashboard = () => {
     };
 
     return (
-        <div id="home" className="bg-[#0F172A] text-white w-full min-h-screen flex flex-col items-center pb-8 relative font-outfit ">
+        <div id="home" className="min-h-screen bg-[#0F172A] text-white flex flex-col items-center pb-20 relative font-outfit selection:bg-blue-500/30">
+            {/* Background Decor */}
+            <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[120px] rounded-full"></div>
+                <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-600/5 blur-[120px] rounded-full"></div>
+            </div>
 
-            {/* Navbar */}
-            <div className='sticky top-4 z-50 bg-[#1E293B]/80 backdrop-blur-md border border-[#334155]/50 shadow-lg w-[95%] rounded-xl flex flex-col px-4 md:px-6 transition-all duration-300'>
-                <div className="w-full flex justify-between items-center h-14">
-                    <div className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-400 to-emerald-400 tracking-wide">
-                        สถานีตรวจสภาพอากาศ
+            {/* Floating Glass Navbar */}
+            <nav className='fixed top-6 z-50 msn-glass w-[90%] max-w-6xl rounded-2xl flex flex-col px-6 transition-all duration-500 hover:border-white/20'>
+                <div className="w-full flex justify-between items-center h-16">
+                    <div className="flex items-center gap-3 group cursor-pointer">
+                        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:rotate-12 transition-transform">
+                            <span className="font-bold text-white">L</span>
+                        </div>
+                        <div className="text-lg font-bold tracking-tight text-white">
+                            LookData <span className="text-blue-400">Weather</span>
+                        </div>
                     </div>
 
-                    <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center gap-8 text-sm font-medium text-gray-300 w-auto">
-                        <p onClick={() => scrollToSection('home')} className='cursor-pointer hover:text-blue-400 transition-colors'>หน้าแรก</p>
-                        <p onClick={() => scrollToSection('tmd')} className='cursor-pointer hover:text-blue-400 transition-colors'>กรมอุตุ</p>
-                        <p onClick={() => scrollToSection('weather')} className='cursor-pointer hover:text-blue-400 transition-colors'>Weather.com</p>
-                        <p onClick={() => scrollToSection('msn')} className='cursor-pointer hover:text-blue-400 transition-colors'>MSN</p>
-                        <Link to="/overall" className='cursor-pointer hover:text-blue-400 transition-colors'>ภาพรวม</Link>
+                    <div className="hidden lg:flex items-center gap-6 text-[12px] font-bold uppercase tracking-widest text-gray-400">
+                        <p onClick={() => scrollToSection('home')} className="cursor-pointer hover:text-white transition-colors">HOME</p>
+                        <p onClick={() => scrollToSection('tmd')} className="cursor-pointer hover:text-white transition-colors">TMD</p>
+                        <p onClick={() => scrollToSection('weather')} className="cursor-pointer hover:text-white transition-colors">WEATHER</p>
+                        <p onClick={() => scrollToSection('msn')} className="cursor-pointer hover:text-white transition-colors">MSN</p>
+                        <Link to="/overall" className="hover:text-white transition-colors">OVERALL</Link>
                     </div>
 
-                    <div className='hidden md:flex items-center gap-6 text-sm font-medium'>
-                        <div className="relative">
+                    <div className='hidden md:flex items-center gap-6'>
+                        <button 
+                            onClick={() => loggedInUser ? setIsDownloadOpen(true) : setIsLoginOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-300 transition-all active:scale-95"
+                        >
+                            <span>DOWNLOAD</span>
+                            {!loggedInUser ? <span className="text-yellow-500">🔒</span> : <span className="text-blue-400">↓</span>}
+                        </button>
+                        
+                        {loggedInUser?.role === 'admin' && (
+                            <Link to="/addnode" className="px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-400 uppercase tracking-widest hover:bg-emerald-500/20 transition-all">ADMIN</Link>
+                        )}
+                        
+                        {loggedInUser ? (
+                            <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
+                                <div className="w-6 h-6 bg-emerald-500/20 rounded-lg flex items-center justify-center text-[10px]">👤</div>
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] font-bold text-gray-200 leading-none">{loggedInUser.username}</span>
+                                    <button onClick={() => handleLogout()} className="text-[8px] text-gray-500 hover:text-red-400 font-bold uppercase mt-0.5 text-left">LOGOUT</button>
+                                </div>
+                            </div>
+                        ) : (
+                            <button 
+                                onClick={() => setIsLoginOpen(true)}
+                                className='bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-xs font-bold transition-all shadow-[0_10px_20px_rgba(37,99,235,0.2)]'>
+                                SIGN IN
+                            </button>
+                        )}
+                    </div>
+
+                    <button className="md:hidden text-gray-400 p-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                    </button>
+                </div>
+
+                {/* Mobile Menu Dropdown */}
+                {isMobileMenuOpen && (
+                    <div className="md:hidden flex flex-col gap-6 pb-8 pt-4 border-t border-white/5 animate-msn-in">
+                        <div className="flex flex-col gap-4 text-sm font-bold uppercase tracking-widest text-gray-400 pl-2">
+                            <p onClick={() => { scrollToSection('home'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">HOME</p>
+                            <p onClick={() => { scrollToSection('tmd'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">TMD</p>
+                            <p onClick={() => { scrollToSection('weather'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">WEATHER</p>
+                            <p onClick={() => { scrollToSection('msn'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">MSN</p>
+                            <Link to="/overall" className="hover:text-white transition-colors">OVERALL</Link>
+                            {loggedInUser?.role === 'admin' && (
+                                <Link to="/addnode" className="text-emerald-400 hover:text-emerald-300 transition-colors">ADMIN</Link>
+                            )}
+                        </div>
+
+                        <div className="flex flex-col gap-4 pt-4 border-t border-white/5">
+                            <button 
+                                onClick={() => { loggedInUser ? setIsDownloadOpen(true) : setIsLoginOpen(true); setIsMobileMenuOpen(false); }}
+                                className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest text-white transition-all active:scale-95"
+                            >
+                                <span>DOWNLOAD DATA</span>
+                                {!loggedInUser ? <span className="text-yellow-500">🔒</span> : <span className="text-blue-400 text-lg">↓</span>}
+                            </button>
+
+                            {loggedInUser ? (
+                                <div className="flex items-center justify-between px-6 py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center text-xs">👤</div>
+                                        <span className="text-xs font-bold text-gray-200">{loggedInUser.username}</span>
+                                    </div>
+                                    <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="text-[10px] text-rose-400 font-bold uppercase tracking-widest">LOGOUT</button>
+                                </div>
+                            ) : (
+                                <button 
+                                    onClick={() => { setIsLoginOpen(true); setIsMobileMenuOpen(false); }}
+                                    className="w-full px-6 py-4 rounded-2xl bg-blue-600 text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-blue-600/20">
+                                    SIGN IN
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
+            </nav>
+
+            {/* Main Content Area */}
+            <main className="w-full max-w-6xl px-4 mt-32 relative z-10">
+                
+                {/* Hero Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch min-h-[400px]">
+                    {/* Map & Station Selection */}
+                    <div className="lg:col-span-8 flex flex-col gap-4">
+                        {/* Station Dropdown */}
+                        <div className="relative group w-full lg:w-1/2">
                             <div 
                                 onClick={() => setIsStationDropdownOpen(!isStationDropdownOpen)}
-                                className="bg-[#0F172A]/80 text-white px-4 py-1.5 rounded-lg border border-[#334155] hover:border-blue-500 transition-colors cursor-pointer flex justify-between items-center min-w-35 select-none"
+                                className="bg-white/5 hover:bg-white/10 msn-glass text-white px-6 py-3 rounded-2xl border border-white/10 transition-all cursor-pointer flex items-center gap-3 w-full shadow-lg"
                             >
-                                <span>{selectedNode || "เลือก..."}</span>
-                                <span className="text-gray-400 text-xs ml-3">{isStationDropdownOpen ? '▲' : '▼'}</span>
+                                <div className="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center text-blue-400">
+                                    📍
+                                </div>
+                                <div className="flex flex-col flex-1 text-left">
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Current Station</span>
+                                    <span className="text-sm font-bold truncate">{selectedNode || "SELECT STATION"}</span>
+                                </div>
+                                <span className={`text-[12px] text-gray-400 transition-transform duration-300 ${isStationDropdownOpen ? 'rotate-180' : ''}`}>▼</span>
                             </div>
-                            {isStationDropdownOpen && !isMobileMenuOpen && (
-                                <div className="absolute top-full mt-1 left-0 w-full bg-[#1E293B] border border-[#334155] rounded-lg shadow-xl z-50 flex flex-col overflow-hidden max-h-48 overflow-y-auto">
+                            {isStationDropdownOpen && (
+                                <div className="absolute top-full mt-2 left-0 w-full msn-glass rounded-xl shadow-2xl z-[100] flex flex-col overflow-hidden py-2 border border-white/10 max-h-[300px] overflow-y-auto">
                                     {node.map((item, index) => (
                                         <div 
                                             key={index}
                                             onClick={() => { setSelectedNode(item.node_name); setIsStationDropdownOpen(false); }}
-                                            className={`px-4 py-2 cursor-pointer transition-colors ${selectedNode === item.node_name ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-[#0F172A] hover:text-white'}`}
+                                            className={`px-4 py-3 cursor-pointer text-sm font-medium transition-all text-left ${selectedNode === item.node_name ? 'bg-blue-600/40 text-white border-l-4 border-blue-500' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
                                         >
                                             {item.node_name}
                                         </div>
@@ -112,241 +228,144 @@ const Dashboard = () => {
                                 </div>
                             )}
                         </div>
-                        <p 
-                            onClick={() => loggedInUser ? setIsDownloadOpen(true) : setIsLoginOpen(true)}
-                            className='cursor-pointer text-gray-300 hover:text-blue-400 transition-colors flex items-center gap-1'
-                        >
-                            ดาวน์โหลด{!loggedInUser && <span className="text-yellow-500 text-xs">🔒</span>}
-                        </p>
-                        {loggedInUser ? (
-                            <div className="flex items-center gap-2 bg-[#0F172A]/80 px-3 py-1.5 rounded-lg border border-[#334155]">
-                                <span className="text-emerald-400 text-sm font-medium">👤 {loggedInUser.username}</span>
-                                <button
-                                    onClick={() => handleLogout()}
-                                    className="text-gray-500 hover:text-red-400 text-xs transition-colors"
-                                >ออก</button>
-                            </div>
-                        ) : (
-                            <button 
-                                onClick={() => setIsLoginOpen(true)}
-                                className='cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-4 py-1.5 rounded-lg transition-all shadow hover:shadow-blue-500/20'>
-                                เข้าสู่ระบบ
-                            </button>
-                        )}
-                    </div>
 
-                    {/* Mobile Hamburger Button */}
-                    <button 
-                        className="md:hidden text-gray-300 hover:text-white p-2"
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    >
-                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                    </button>
-                </div>
-
-                {/* Mobile Menu Dropdown */}
-                {isMobileMenuOpen && (
-                    <div className="md:hidden flex flex-col gap-4 pb-5 pt-2 border-t border-[#334155]/50 mt-1">
-                        <div className="flex flex-col gap-4 text-[15px] font-medium text-gray-300 pl-2">
-                            <p onClick={() => { scrollToSection('home'); setIsMobileMenuOpen(false); }} className='cursor-pointer hover:text-blue-400 transition-colors inline-block'>หน้าแรก</p>
-                            <p onClick={() => { scrollToSection('tmd'); setIsMobileMenuOpen(false); }} className='cursor-pointer hover:text-blue-400 transition-colors inline-block'>กรมอุตุ</p>
-                            <p onClick={() => { scrollToSection('weather'); setIsMobileMenuOpen(false); }} className='cursor-pointer hover:text-blue-400 transition-colors inline-block'>Weather.com</p>
-                            <p onClick={() => { scrollToSection('msn'); setIsMobileMenuOpen(false); }} className='cursor-pointer hover:text-blue-400 transition-colors inline-block'>MSN</p>
-                            <Link to="/overall" className='cursor-pointer hover:text-blue-400 transition-colors inline-block'>ภาพรวม</Link>
-                        </div>
-                        
-                        <div className="flex flex-col gap-4 mt-2 pt-4 border-t border-[#334155]/30">
-                            <div className="flex flex-col gap-2 relative">
-                                <label className="text-sm text-gray-400 pl-2">เลือกสถานี</label>
-                                <div 
-                                    onClick={() => setIsStationDropdownOpen(!isStationDropdownOpen)}
-                                    className="bg-[#0F172A]/80 text-white px-4 py-2.5 rounded-lg border border-[#334155] hover:border-blue-500 transition-colors cursor-pointer w-full text-base flex justify-between items-center select-none"
-                                >
-                                    <span>{selectedNode || "เลือก..."}</span>
-                                    <span className="text-gray-400 text-xs">{isStationDropdownOpen ? '▲' : '▼'}</span>
-                                </div>
-                                {isStationDropdownOpen && isMobileMenuOpen && (
-                                    <div className="absolute top-full mt-1 left-0 w-full bg-[#1E293B] border border-[#334155] rounded-lg shadow-xl z-50 flex flex-col overflow-hidden max-h-48 overflow-y-auto">
-                                        {node.map((item, index) => (
-                                            <div 
-                                                key={index} 
-                                                className={`px-4 py-3 cursor-pointer text-sm font-medium transition-colors ${selectedNode === item.node_name ? 'bg-blue-600 text-white' : 'text-gray-300 hover:bg-[#0F172A] hover:text-white'}`}
-                                                onClick={() => { 
-                                                    setSelectedNode(item.node_name); 
-                                                    setIsStationDropdownOpen(false); 
-                                                    setIsMobileMenuOpen(false); 
-                                                }}
-                                            >
-                                                {item.node_name}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex flex-col gap-3 mt-1">
-                                <button 
-                                    onClick={() => { loggedInUser ? setIsDownloadOpen(true) : setIsLoginOpen(true); setIsMobileMenuOpen(false); }} 
-                                    className='w-full cursor-pointer bg-transparent border border-gray-600 hover:border-gray-400 text-white px-4 py-2.5 rounded-lg transition-all text-base font-medium flex items-center justify-center gap-2'
-                                >
-                                    ดาวน์โหลด{!loggedInUser && <span className="text-yellow-500 text-xs">🔒</span>}
-                                </button>
-                                {loggedInUser ? (
-                                    <div className="flex items-center justify-between bg-[#0F172A]/80 px-4 py-2.5 rounded-lg border border-emerald-500/30">
-                                        <span className="text-emerald-400 text-sm font-medium">👤 {loggedInUser.username}</span>
-                                        <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="text-gray-500 hover:text-red-400 text-xs transition-colors">ออกจากระบบ</button>
-                                    </div>
-                                ) : (
-                                    <button 
-                                        onClick={() => { setIsLoginOpen(true); setIsMobileMenuOpen(false); }}
-                                        className='w-full cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-lg transition-all shadow-md text-base font-medium'>
-                                        เข้าสู่ระบบ
-                                    </button>
-                                )}
-                            </div>
+                        {/* Map Card */}
+                        <div className="flex-1 min-h-[250px] lg:min-h-[420px] msn-glass rounded-[2rem] overflow-hidden group border border-white/5 relative z-10">
+                            <MapComponent
+                                nodes={node}
+                                selectedNode={selectedNode}
+                                onNodeSelect={(nodeName) => setSelectedNode(nodeName)}
+                                zoom={12}
+                            />
+                            {/* Map Overlay for Dark Mode Feel */}
+                            <div className="absolute inset-0 pointer-events-none border-[6px] border-[#0F172A] rounded-[2rem] z-20"></div>
                         </div>
                     </div>
-                )}
-            </div>
 
-
-            <div className='w-[95%] flex justify-start'>
-                <h1 className='text-3xl font-bold mt-8 text-blue-400 '>สถานี: {selectedNode}</h1>
-            </div>
-
-            {/* Map */}
-            <div className="bg-[#1E293B] w-[95%] h-75 md:h-75 mt-4 rounded-lg overflow-hidden ">
-                <MapComponent
-                    nodes={node}
-                    selectedNode={selectedNode}
-                    onNodeSelect={(nodeName) => setSelectedNode(nodeName)}
-                    zoom={12}
-                />
-            </div>
-
-            {/* Grid */}
-            <div className='grid grid-cols-1 md:grid-cols-[1fr_2fr] gap-4 mt-4 w-[95%]'>
-
-                <div className='bg-[#1E293B] w-full h-50 rounded-lg flex items-center p-3'>
-                    <CardToDay node={dataNode} />
+                    {/* Today Card - Reduced height on mobile */}
+                    <div className="lg:col-span-4 h-[320px] lg:h-auto msn-glass rounded-[2rem] p-6 flex items-center justify-center relative overflow-hidden group border border-white/5">
+                         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full"></div>
+                         <div className="w-full h-full flex items-center justify-center">
+                            <CardToDay node={dataNode} />
+                         </div>
+                    </div>
                 </div>
 
-                <div className='bg-[#1E293B] w-full h-50 rounded-lg flex items-center justify-start md:justify-center p-2 overflow-x-auto gap-3 touch-pan-x snap-x pb-3'>
+                {/* 7-Day Forecast Section */}
+                <div className="mt-8">
+                    <div className="flex items-center justify-between mb-4 px-2">
+                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-[0.3em]">7-Day Forecast</h3>
+                        <div className="flex gap-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-white/10"></div>
+                            <div className="w-1.5 h-1.5 rounded-full bg-white/10"></div>
+                        </div>
+                    </div>
                     <Card7day node={selectedNode} />
                 </div>
 
-            </div>
+                {/* Main Data & Chart Section */}
+                <div className="mt-12 grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div className="lg:col-span-12 msn-glass rounded-[2rem] p-8">
+                        <div className="flex items-center gap-3 mb-6 ">
+                            <div className="w-1 h-6 bg-blue-500 rounded-full "></div>
+                            <div className="flex w-full flex-col sm:flex-row sm:items-center justify-between gap-4">                            
+                                <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
+                                    ข้อมูลทั้งหมดของสถานี <span className="text-blue-500 ml-1">{selectedNode}</span>
+                                </h3>
+                                <Link to={`/detail-hour/${selectedNode}`} className="self-start sm:self-auto shrink-0">
+                                    <button className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/40 text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] whitespace-nowrap">
+                                        <span>รายละเอียดเพิ่มเติม</span>
+                                        <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+                                    </button>
+                                </Link>
+                            </div>
 
-            <div className='bg-[#1E293B] w-[95%] h-auto mt-4 rounded-lg p-4'>
-                <p className='text-xl font-bold'>ข้อมูลทั้งหมด</p>
-                <CardAllDataNode node={dataNode} />
-            </div>
-
-            {/* Chart Area */}
-            {/* Chart ตัวแรก */}
-            <div className='w-[95%] h-96 lg:h-80 mt-4 min-w-0'>
-                <ChartWidget node={selectedNode} metric="temp" />
-            </div>
-
-            {/* Chart แถวที่สอง */}
-            <div className='w-[95%] mt-4 flex flex-col lg:flex-row justify-center items-center gap-4'>
-                <div className='w-full lg:w-1/2 h-96 lg:h-80 bg-[#1E293B] rounded-lg min-w-0'>
-                    <ChartWidget node={selectedNode} metric="humidity" />
-                </div>
-                <div className='w-full lg:w-1/2 h-96 lg:h-80 bg-[#1E293B] rounded-lg min-w-0'>
-                    <ChartWidget node={selectedNode} metric="wind_speed" />
-                </div>
-            </div>
-
-            {/* Chart แถวที่สาม */}
-            <div className='w-[95%] mt-4 flex flex-col lg:flex-row justify-center items-center gap-4'>
-                <div className='w-full lg:w-1/2 h-96 lg:h-80 bg-[#1E293B] rounded-lg min-w-0'>
-                    <ChartWidget node={selectedNode} metric="pressure" />
-                </div>
-                <div className='w-full lg:w-1/2 h-96 lg:h-80 bg-[#1E293B] rounded-lg min-w-0'>
-                    <ChartWidget node={selectedNode} metric="light" />
-                </div>
-            </div>
-            <div id="tmd" className='w-[95%] flex justify-start'>
-                <h1 className='text-3xl font-bold mt-8 text-blue-400 '>กรมอุตุนิยมวิทยา ตาก</h1>
-            </div>
-            
-            {/* ----------------------------------------- TMD ----------------------------------------- */}
-            <CardPre7day />
-
-            <div className="bg-[#202124] w-[95%] h-auto mt-4 rounded-lg p-4">
-                <div className="bg-[#202124] w-full h-auto  p-4 border-b border-[#334155] ">
-                    <p className='text-xl font-bold'>ข้อมูลทั้งหมด</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetTMD metric="temp"/>
+                        </div>
+                        <CardAllDataNode node={dataNode} />
                     </div>
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetTMD metric="humidity"/>
+
+                    {/* Row 1: Big Chart */}
+                    <div className="lg:col-span-12 h-[400px] sm:h-[450px]">
+                        <ChartWidget node={selectedNode} metric="temp" />
                     </div>
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetTMD metric="wind_speed"/>
-                    </div>
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetTMD metric="rain"/>
+
+                    {/* Row 2+: Other Charts - Horizontal Scroll on Mobile */}
+                    <div className="lg:col-span-12 flex lg:grid lg:grid-cols-2 gap-6 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 snap-x snap-mandatory no-scrollbar">
+                        <div className="min-w-[85vw] lg:min-w-0 h-[380px] lg:h-[400px] snap-center shrink-0">
+                            <ChartWidget node={selectedNode} metric="humidity" />
+                        </div>
+                        <div className="min-w-[85vw] lg:min-w-0 h-[380px] lg:h-[400px] snap-center shrink-0">
+                            <ChartWidget node={selectedNode} metric="wind_speed" />
+                        </div>
+                        <div className="min-w-[85vw] lg:min-w-0 h-[380px] lg:h-[400px] snap-center shrink-0">
+                            <ChartWidget node={selectedNode} metric="pressure" />
+                        </div>
+                        <div className="min-w-[85vw] lg:min-w-0 h-[380px] lg:h-[400px] snap-center shrink-0">
+                            <ChartWidget node={selectedNode} metric="light" />
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* ----------------------------------------- Weather.com ----------------------------------------- */}
-            <div id="weather" className='w-[95%] flex justify-start'>
-                <h1 className='text-3xl font-bold mt-8 text-blue-400 '>Weather.com</h1>
-            </div>
-            
-            <CardCurrentWeather />
-
-            <div className="bg-[#202124] w-[95%] h-auto mt-4 rounded-lg p-4">
-                <div className="bg-[#202124] w-full h-auto  p-4 border-b border-[#334155] ">
-                    <p className='text-xl font-bold'>ข้อมูลทั้งหมด</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetWeather metric="temp"/>
+                {/* Secondary Sources Sections */}
+                <div id="tmd" className="mt-24 space-y-8 pb-10">
+                    <div className="flex flex-col items-center text-center max-w-2xl mx-auto space-y-4">
+                        <span className="px-4 py-1.5 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-widest border border-blue-500/20">Official Source</span>
+                        <h2 className='text-4xl font-bold tracking-tighter text-white'>กรมอุตุนิยมวิทยา ตาก</h2>
+                        <p className="text-gray-500 text-sm">ข้อมูลอ้างอิงโดยตรงจากสถานีตรวจวัดอากาศหลักประจำจังหวัดตาก</p>
                     </div>
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetWeather metric="humidity"/>
-                    </div>
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetWeather metric="wind"/>
-                    </div>
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetWeather metric="pressure"/>
+                    
+                    <div className="msn-glass rounded-[2.5rem] p-8">
+                        <CardPre7day />
+                        <div className="flex md:grid md:grid-cols-2 gap-6 mt-8 overflow-x-auto md:overflow-visible pb-4 md:pb-0 snap-x snap-mandatory no-scrollbar">
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetTMD metric="temp"/></div>
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetTMD metric="humidity"/></div>
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetTMD metric="wind_speed"/></div>
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetTMD metric="rain"/></div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            {/* ----------------------------------------- MSN ----------------------------------------- */}
-            <div id="msn" className='w-[95%] flex justify-start'>
-                <h1 className='text-3xl font-bold mt-8 text-blue-400 '>Microsoft Weather (MSN)</h1>
-            </div>
-            
-            <CardCurrentMSN />
-
-            <div className="bg-[#202124] w-[95%] h-auto mt-4 rounded-lg p-4">
-                <div className="bg-[#202124] w-full h-auto  p-4 border-b border-[#334155] ">
-                    <p className='text-xl font-bold'>ข้อมูลทั้งหมด</p>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetMSN metric="temp"/>
+                {/* Weather.com Section */}
+                <div id="weather" className="mt-24 space-y-8">
+                    <div className="flex flex-col items-center text-center max-w-2xl mx-auto space-y-4">
+                        <span className="px-4 py-1.5 rounded-full bg-orange-500/10 text-orange-400 text-[10px] font-bold uppercase tracking-widest border border-orange-500/20">Global Source</span>
+                        <h2 className='text-4xl font-bold tracking-tighter text-white'>Weather.com</h2>
+                        <p className="text-gray-500 text-sm">ข้อมูลพยากรณ์อากาศระดับโลกจาก Weather Channel</p>
                     </div>
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetMSN metric="humidity"/>
-                    </div>
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetMSN metric="wind_speed"/>
-                    </div>
-                    <div className="bg-[#1E293B] w-full h-96 lg:h-80 rounded-lg flex items-center p-3">
-                        <ChartWidgetMSN metric="pm25"/>
+                    
+                    <div className="msn-glass rounded-[2.5rem] p-8">
+                        <CardCurrentWeather />
+                        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8 overflow-x-auto md:overflow-visible pb-4 md:pb-0 snap-x snap-mandatory no-scrollbar">
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetWeather metric="temp"/></div>
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetWeather metric="humidity"/></div>
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetWeather metric="wind"/></div>
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetWeather metric="pressure"/></div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
+                {/* MSN Section */}
+                <div id="msn" className="mt-24 space-y-8">
+                    <div className="flex flex-col items-center text-center max-w-2xl mx-auto space-y-4">
+                        <span className="px-4 py-1.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-widest border border-emerald-500/20">Microsoft Partner</span>
+                        <h2 className='text-4xl font-bold tracking-tighter text-white'>MSN Weather</h2>
+                        <p className="text-gray-500 text-sm">การพยากรณ์อากาศที่แม่นยำและละเอียดที่สุดจาก Microsoft</p>
+                    </div>
+                    
+                    <div className="msn-glass rounded-[2.5rem] p-8">
+                        <CardCurrentMSN />
+                        <div className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8 overflow-x-auto md:overflow-visible pb-4 md:pb-0 snap-x snap-mandatory no-scrollbar">
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetMSN metric="temp"/></div>
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetMSN metric="humidity"/></div>
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetMSN metric="wind_speed"/></div>
+                            <div className="min-w-[85vw] md:min-w-0 h-80 snap-center shrink-0"><ChartWidgetMSN metric="pm25"/></div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            {/* Modals */}
             <RegisterModal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} />
             <LoginModal
                 isOpen={isLoginOpen}
@@ -354,7 +373,7 @@ const Dashboard = () => {
                 onOpenRegister={() => setIsRegisterOpen(true)}
                 onLoginSuccess={(user) => handleLoginSuccess(user)}
             />
-            <DownloadModal isOpen={isDownloadOpen} onClose={() => setIsDownloadOpen(false)} />
+            <DownloadModal isOpen={isDownloadOpen} onClose={() => setIsDownloadOpen(false)} selectedNode={selectedNode} />
         </div>
     )
 }

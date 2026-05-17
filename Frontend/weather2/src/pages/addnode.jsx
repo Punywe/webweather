@@ -22,8 +22,22 @@ const AddNode = () => {
 
     // ── Auth guard ─────────────────────────────────────────────────────────
     useEffect(() => {
-        const user = JSON.parse(localStorage.getItem('weather_user') || 'null');
-        if (!user) navigate('/');
+        try {
+            const data = JSON.parse(localStorage.getItem('weather_user'));
+            if (data) {
+                if (data.loginTime) {
+                    if (new Date().getTime() - data.loginTime > 30 * 60 * 1000) {
+                        localStorage.removeItem('weather_user');
+                        navigate('/'); // Kick them out
+                    }
+                }
+            } else {
+                navigate('/');
+            }
+        } catch (e) {
+            console.error(e);
+            navigate('/');
+        }
     }, [navigate]);
 
     const handleLogout = () => {

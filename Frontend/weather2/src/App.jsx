@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 import Dashboard from "./pages/dashbroad";
 import Overall from "./pages/overall";
 import AddNode from "./pages/addnode";
+import DetailHour from "./pages/DetailHour";
 import Lenis from 'lenis'
 import { useEffect } from "react";
 
@@ -30,6 +31,7 @@ function App() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/overall" element={<Overall />} />
         <Route path="/addnode" element={<AddNode />} />
+        <Route path="/detail-hour/:node" element={<DetailHour />} />
       </Routes>
     </BrowserRouter>
   )

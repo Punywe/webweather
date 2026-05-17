@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Menu, X, ArrowLeft, Thermometer, Droplets, Wind, ArrowUpRight, ArrowDownRight, Minus, BarChart3, Database, CloudSun } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { LoginModal } from '../components/LoginModal';
+import { RegisterModal } from '../components/RegisterModal';
+import { DownloadModal } from '../components/DownloadModal';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const Overall = () => {
     const [averages, setAverages] = useState({ temp: 0, humidity: 0, wind_speed: 0 });
@@ -10,6 +14,39 @@ const Overall = () => {
     const [loading, setLoading] = useState(true);
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isLoginOpen, setIsLoginOpen] = useState(false);
+    const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+    const [isDownloadOpen, setIsDownloadOpen] = useState(false);
+    const [loggedInUser, setLoggedInUser] = useState(null);
+
+    useEffect(() => {
+        try {
+            const data = JSON.parse(localStorage.getItem('weather_user'));
+            if (data) {
+                // If it has loginTime, check if 30 mins (1800000 ms) passed
+                if (data.loginTime) {
+                    if (new Date().getTime() - data.loginTime > 30 * 60 * 1000) {
+                        localStorage.removeItem('weather_user');
+                        setLoggedInUser(null);
+                        return;
+                    }
+                    setLoggedInUser(data.user);
+                } else {
+                    // Fallback for old format
+                    setLoggedInUser(data);
+                }
+            }
+        } catch (e) {
+            console.error("Error reading session", e);
+        }
+    }, []);
+
+    const handleLoginSuccess = (user) => {
+        const sessionData = { user: user, loginTime: new Date().getTime() };
+        localStorage.setItem('weather_user', JSON.stringify(sessionData));
+        setLoggedInUser(user);
+        setIsLoginOpen(false);
+    };
 
     useEffect(() => {
         const fetchAllData = async () => {
@@ -104,79 +141,43 @@ const Overall = () => {
     };
 
     const getDiffBadge = (difference) => {
-        if (difference.sign > 0) {
-            return (
-                <div className="flex items-center gap-1 text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0">
-                    <ArrowUpRight size={14} />
-                    <span>+{formatValue(difference.diff)} ({formatValue(difference.percent)}%)</span>
-                </div>
-            );
-        } else if (difference.sign < 0) {
-            return (
-                <div className="flex items-center gap-1 text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0">
-                    <ArrowDownRight size={14} />
-                    <span>{formatValue(difference.diff)} ({formatValue(difference.percent)}%)</span>
-                </div>
-            );
-        }
+        const absDiff = Math.abs(difference.diff);
+        const absPercent = Math.abs(difference.percent);
+        
         return (
-            <div className="flex items-center gap-1 text-gray-400 bg-gray-500/10 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0">
-                <Minus size={14} />
-                <span>0 (0%)</span>
+            <div className="flex items-center gap-1 text-gray-300 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 border border-white/10">
+                <span className="text-[10px] text-gray-400">ต่างกัน</span>
+                <span className="text-white font-bold">{formatValue(absDiff)}</span>
+                <span className="text-gray-400">({formatValue(absPercent)}%)</span>
             </div>
         );
     };
 
-    const StatsRow = ({ label, leftVal, rightVal, unit, isLast }) => (
-        <div className={`flex items-center w-full py-5 ${!isLast ? 'border-b border-[#334155]/40' : ''}`}>
-             <div className="flex-1 text-center text-2xl font-semibold text-gray-200">
-                 {formatValue(leftVal)} <span className="text-sm font-normal text-gray-500">{unit}</span>
-             </div>
-             <div className="w-32 bg-[#0F172A]/60 border border-[#334155]/30 rounded-full py-1.5 text-center text-[11px] uppercase font-bold text-gray-400 tracking-wider">
-                 {label}
-             </div>
-             <div className="flex-1 text-center text-2xl font-semibold text-gray-200">
-                 {formatValue(rightVal)} <span className="text-sm font-normal text-gray-500">{unit}</span>
-             </div>
+    const MetricBarChart = ({ title, data, unit }) => (
+        <div className="msn-glass bg-[#1E293B]/70 border border-white/5 rounded-3xl p-6 flex flex-col h-[300px] hover:scale-[1.02] transition-transform duration-300 shadow-xl">
+            <h3 className="text-white font-bold text-lg mb-4">{title}</h3>
+            <div className="flex-1 w-full relative">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                        <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" fontSize={11} tickLine={false} axisLine={false} fontWeight="bold" />
+                        <YAxis stroke="rgba(255,255,255,0.3)" fontSize={11} tickLine={false} axisLine={false} width={40} fontWeight="bold" />
+                        <Tooltip 
+                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                            contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff' }}
+                            itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                            formatter={(value) => [`${formatValue(value)} ${unit}`, 'ค่าที่วัดได้']}
+                        />
+                        <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                            {data.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
         </div>
     );
-
-    const SideBySideCompare = ({ leftTitle, rightTitle, leftColorClass, rightColorClass, leftBorderClass, rightBorderClass, leftData, rightData, leftIcon: LeftIcon, rightIcon: RightIcon }) => {
-        return (
-            <div className="w-full bg-[#1E293B]/40 rounded-xl overflow-hidden border border-[#334155]/50 shadow-xl flex flex-col transition-transform hover:-translate-y-1 hover:shadow-blue-500/10 duration-300">
-                {/* Header row with VS */}
-                <div className="flex w-full items-stretch bg-[#0F172A]/60">
-                    {/* Left Header */}
-                    <div className={`flex-1 flex flex-col items-center justify-center py-8 border-t-4 ${leftBorderClass}`}>
-                        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 shadow-lg ${leftColorClass}`}>
-                            <LeftIcon size={32} className="text-white" />
-                        </div>
-                        <h2 className={`text-lg md:text-xl font-bold tracking-wide ${leftBorderClass.replace('border-t-', 'text-')}`}>{leftTitle}</h2>
-                    </div>
-
-                    {/* VS middle */}
-                    <div className="w-16 md:w-24 flex items-center justify-center relative bg-[#0F172A]">
-                         <span className="text-2xl md:text-3xl font-black text-gray-500/30">VS.</span>
-                    </div>
-
-                    {/* Right Header */}
-                    <div className={`flex-1 flex flex-col items-center justify-center py-8 border-t-4 ${rightBorderClass}`}>
-                         <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-3 shadow-lg ${rightColorClass}`}>
-                            <RightIcon size={32} className="text-white" />
-                        </div>
-                        <h2 className={`text-lg md:text-xl font-bold tracking-wide ${rightBorderClass.replace('border-t-', 'text-')}`}>{rightTitle}</h2>
-                    </div>
-                </div>
-
-                {/* Rows wrapper */}
-                <div className="bg-[#1E293B]/40 px-4 md:px-10 pb-2">
-                    <StatsRow label="อุณหภูมิ" unit="°C" leftVal={leftData.temp} rightVal={rightData.temp} />
-                    <StatsRow label="ความชื้น" unit="%" leftVal={leftData.humidity} rightVal={rightData.humidity} />
-                    <StatsRow label="ความเร็วลม" unit="km/h" leftVal={leftData.wind_speed} rightVal={rightData.wind_speed} isLast={true} />
-                </div>
-            </div>
-        )
-    };
 
     const OverviewItem = ({ title, nodeVal, tmdVal, msnVal, weatherVal, unit, icon: Icon, colorClass }) => {
         const diffTMD = calcDiff(nodeVal, tmdVal);
@@ -227,120 +228,152 @@ const Overall = () => {
         )
     }
 
+    const tempChartData = [
+        { name: 'Node', value: averages.temp, color: '#3B82F6' },
+        { name: 'TMD', value: tmdData.temp, color: '#F97316' },
+        { name: 'MSN', value: msnData.temp, color: '#10B981' },
+        { name: 'Weather', value: weatherData.temp, color: '#06B6D4' }
+    ];
+    const humChartData = [
+        { name: 'Node', value: averages.humidity, color: '#3B82F6' },
+        { name: 'TMD', value: tmdData.humidity, color: '#F97316' },
+        { name: 'MSN', value: msnData.humidity, color: '#10B981' },
+        { name: 'Weather', value: weatherData.humidity, color: '#06B6D4' }
+    ];
+    const windChartData = [
+        { name: 'Node', value: averages.wind_speed, color: '#3B82F6' },
+        { name: 'TMD', value: tmdData.wind_speed, color: '#F97316' },
+        { name: 'MSN', value: msnData.wind_speed, color: '#10B981' },
+        { name: 'Weather', value: weatherData.wind_speed, color: '#06B6D4' }
+    ];
+
     return (
-        <div className="bg-[#0F172A] text-white w-full min-h-screen flex flex-col items-center pb-12 font-outfit">
-            {/* Simple Navbar */}
-            <div className='sticky top-4 z-50 bg-[#1E293B]/80 backdrop-blur-md border border-[#334155]/50 shadow-lg w-[95%] rounded-xl flex flex-col px-4 md:px-6 transition-all duration-300'>
-                <div className="w-full flex justify-between items-center h-14">
-                    <div className="flex items-center gap-4">
-                        <Link to="/" className="text-gray-400 hover:text-white transition-colors p-1 bg-[#0F172A] rounded-lg border border-[#334155]">
-                            <ArrowLeft size={20} />
+        <div className="min-h-screen bg-[#0F172A] text-white flex flex-col items-center pb-20 relative font-outfit selection:bg-blue-500/30">
+            {/* Background Decor */}
+            <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-600/10 blur-[120px] rounded-full"></div>
+                <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-emerald-600/5 blur-[120px] rounded-full"></div>
+            </div>
+
+            {/* Floating Glass Navbar */}
+            <nav className='fixed top-6 z-50 msn-glass w-[90%] max-w-6xl rounded-2xl flex flex-col px-6 transition-all duration-500 hover:border-white/20'>
+                <div className="w-full flex justify-between items-center h-16">
+                    <div className="flex items-center gap-3 group cursor-pointer">
+                        <Link to="/" className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:rotate-12 transition-transform">
+                             <ArrowLeft size={18} className="text-white" />
                         </Link>
-                        <div className="text-xl font-bold bg-clip-text text-transparent bg-linear-to-r from-blue-400 to-emerald-400 tracking-wide">
-                            ค่าเฉลี่ยภาพรวม
+                        <div className="text-lg font-bold tracking-tight text-white">
+                            LookData <span className="text-blue-400">Overall</span>
                         </div>
                     </div>
-                    
-                    <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-300">
-                        <Link to="/" className='cursor-pointer hover:text-blue-400 transition-colors'>หน้าแรก</Link>
+
+                    <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center gap-10 text-[13px] font-bold uppercase tracking-widest text-gray-400">
+                        <Link to="/" className="cursor-pointer hover:text-white transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-500 after:transition-all hover:after:w-full">DASHBOARD</Link>
+                        <span className="text-white relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-blue-500">OVERALL</span>
                     </div>
 
-                    <button 
-                        className="md:hidden text-gray-300 hover:text-white p-2"
-                        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    >
+                    <div className='hidden md:flex items-center gap-4'>
+                        <button 
+                            onClick={() => loggedInUser ? setIsDownloadOpen(true) : setIsLoginOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-300 transition-all active:scale-95"
+                        >
+                            <span>DOWNLOAD</span>
+                            {!loggedInUser ? <span className="text-yellow-500">🔒</span> : <span className="text-blue-400">↓</span>}
+                        </button>
+                        <div className="px-4 py-2 rounded-xl bg-blue-600/10 border border-blue-500/20 text-[10px] font-bold uppercase tracking-widest text-blue-400">
+                            Global Comparisons
+                        </div>
+                    </div>
+
+                    <button className="md:hidden text-gray-400 p-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
                         {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
                 </div>
 
+                {/* Mobile Menu Dropdown */}
                 {isMobileMenuOpen && (
-                    <div className="md:hidden flex flex-col gap-4 pb-5 pt-2 border-t border-[#334155]/50 mt-1">
-                        <div className="flex flex-col gap-4 text-[15px] font-medium text-gray-300 pl-2">
-                            <Link to="/" className='cursor-pointer hover:text-blue-400 transition-colors inline-block'>หน้าแรก</Link>
+                    <div className="md:hidden flex flex-col gap-6 pb-8 pt-4 border-t border-white/5 animate-msn-in">
+                        <div className="flex flex-col gap-4 text-sm font-bold uppercase tracking-widest text-gray-400 pl-2">
+                            <Link to="/" className="hover:text-white transition-colors">DASHBOARD</Link>
+                            <span className="text-white">OVERALL</span>
+                        </div>
+
+                        <div className="flex flex-col gap-4 pt-4 border-t border-white/5">
+                            <button 
+                                onClick={() => { loggedInUser ? setIsDownloadOpen(true) : setIsLoginOpen(true); setIsMobileMenuOpen(false); }}
+                                className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest text-white transition-all active:scale-95"
+                            >
+                                <span>DOWNLOAD DATA</span>
+                                {!loggedInUser ? <span className="text-yellow-500">🔒</span> : <span className="text-blue-400 text-lg">↓</span>}
+                            </button>
+
+                            {loggedInUser ? (
+                                <div className="flex items-center justify-between px-6 py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center text-xs">👤</div>
+                                        <span className="text-xs font-bold text-gray-200">{loggedInUser.username}</span>
+                                    </div>
+                                    <button onClick={() => { localStorage.removeItem('weather_user'); window.location.reload(); }} className="text-[10px] text-rose-400 font-bold uppercase tracking-widest">LOGOUT</button>
+                                </div>
+                            ) : (
+                                <button 
+                                    onClick={() => { setIsLoginOpen(true); setIsMobileMenuOpen(false); }}
+                                    className="w-full px-6 py-4 rounded-2xl bg-blue-600 text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-blue-600/20">
+                                    SIGN IN
+                                </button>
+                            )}
                         </div>
                     </div>
                 )}
-            </div>
+            </nav>
 
-            <div className="w-[95%] max-w-7xl mt-12 pb-16">
-                <div className="mb-10 text-center">
-                    <h1 className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-white to-gray-400 mb-3">
-                        เปรียบเทียบข้อมูล
-                    </h1>
-                    <p className="text-gray-400 text-lg">เปรียบเทียบค่าเฉลี่ยสถานี กับ API ภายนอก (กรมอุตุ, MSN & Weather.com)</p>
+            <main className="w-full max-w-7xl px-4 mt-32 relative z-10">
+                <div className="flex flex-col items-center text-center max-w-3xl mx-auto space-y-6 mb-16 animate-msn-in">
+                    <span className="px-4 py-1.5 rounded-full bg-blue-500/10 text-blue-400 text-[10px] font-bold uppercase tracking-widest border border-blue-500/20">Data Intelligence</span>
+                    <h1 className='text-5xl md:text-6xl font-bold tracking-tighter text-white drop-shadow-sm'>เปรียบเทียบข้อมูล <span className="text-blue-500">ภาพรวม</span></h1>
+                    <p className="text-gray-400 text-lg font-medium leading-relaxed">
+                        วิเคราะห์ค่าเฉลี่ยจากทุกสถานีตรวจวัด เปรียบเทียบกับข้อมูลพยากรณ์อากาศจากหน่วยงานระดับโลกแบบ Real-time
+                    </p>
                 </div>
 
                 {loading ? (
-                    <div className="w-full h-64 flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+                    <div className="w-full h-96 flex flex-col items-center justify-center gap-4">
+                        <div className="w-12 h-12 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                        <p className="text-gray-500 font-bold tracking-widest text-xs uppercase">Analyzing data pools...</p>
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-8">
+                    <div className="space-y-12 animate-msn-in" style={{ animationDelay: '0.2s' }}>
                         
-                        <div className="grid grid-cols-1 lg:grid-cols-2 2xl:grid-cols-3 gap-6">
-                            {/* TMD Comparison Side-by-side */}
-                            <SideBySideCompare 
-                                leftTitle="ค่าเฉลี่ยสถานี"
-                                rightTitle="กรมอุตุ"
-                                leftColorClass="bg-orange-500"
-                                rightColorClass="bg-blue-500"
-                                leftBorderClass="border-t-orange-500"
-                                rightBorderClass="border-t-blue-500"
-                                leftIcon={Database}
-                                rightIcon={CloudSun}
-                                leftData={averages}
-                                rightData={tmdData}
-                            />
-
-                            {/* MSN Comparison Side-by-side */}
-                            <SideBySideCompare 
-                                leftTitle="ค่าเฉลี่ยสถานี"
-                                rightTitle="MSN"
-                                leftColorClass="bg-orange-500"
-                                rightColorClass="bg-emerald-500"
-                                leftBorderClass="border-t-orange-500"
-                                rightBorderClass="border-t-emerald-500"
-                                leftIcon={Database}
-                                rightIcon={CloudSun}
-                                leftData={averages}
-                                rightData={msnData}
-                            />
-
-                            {/* Weather.com Comparison Side-by-side */}
-                            <SideBySideCompare 
-                                leftTitle="ค่าเฉลี่ยสถานี"
-                                rightTitle="Weather.com"
-                                leftColorClass="bg-orange-500"
-                                rightColorClass="bg-cyan-500"
-                                leftBorderClass="border-t-orange-500"
-                                rightBorderClass="border-t-cyan-500"
-                                leftIcon={Database}
-                                rightIcon={CloudSun}
-                                leftData={averages}
-                                rightData={weatherData}
-                            />
+                        {/* Comparison Charts */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <MetricBarChart title="อุณหภูมิ (°C)" data={tempChartData} unit="°C" />
+                            <MetricBarChart title="ความชื้น (%)" data={humChartData} unit="%" />
+                            <MetricBarChart title="ความเร็วลม (km/h)" data={windChartData} unit="km/h" />
                         </div>
 
-                        {/* Summary / Overview Section */}
-                        <div className="mt-8 bg-[#1E293B]/40 rounded-xl overflow-hidden border border-[#334155]/50 shadow-xl">
-                            {/* Header */}
-                            <div className="w-full bg-linear-to-r from-cyan-600 to-blue-600 p-4 text-white font-bold flex items-center justify-between">
-                                <span className="flex items-center gap-2 text-lg">
-                                    <BarChart3 size={22}/> 
-                                    ภาพรวมส่วนต่างเทียบข้อมูลล่าสุด
-                                </span>
-                                <span className="hidden sm:inline-block text-xs font-medium bg-black/20 px-3 py-1 rounded-full border border-white/10">
-                                    ค่าเฉลี่ยสถานี เทียบ API ภายนอก
-                                </span>
+                        {/* Detailed Comparison Table-like Section */}
+                        <div className="msn-glass rounded-[2.5rem] overflow-hidden p-2">
+                            <div className="w-full bg-blue-600 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-[2rem]">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                                        <BarChart3 size={24} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white tracking-tight">ภาพรวมส่วนต่างเทียบข้อมูลล่าสุด</h3>
+                                        <p className="text-blue-100 text-xs font-medium">เปรียบเทียบค่าเฉลี่ยสถานี เทียบกับ API ภายนอก</p>
+                                    </div>
+                                </div>
+                                <div className="px-4 py-2 bg-black/20 rounded-xl border border-white/10 text-[10px] font-bold text-white uppercase tracking-widest">
+                                    Last Analysis: {new Date().toLocaleTimeString()}
+                                </div>
                             </div>
 
-                            {/* Body (List of items) */}
-                            <div className="flex flex-col">
+                            <div className="mt-4 px-2 sm:px-6 divide-y divide-white/5">
                                 <OverviewItem 
                                     title="อุณหภูมิ" 
                                     unit="°C"
                                     icon={Thermometer} 
-                                    colorClass="text-rose-400 bg-rose-500/10"
+                                    colorClass="text-rose-400"
                                     nodeVal={averages.temp} 
                                     tmdVal={tmdData.temp} 
                                     msnVal={msnData.temp} 
@@ -350,7 +383,7 @@ const Overall = () => {
                                     title="ความชื้น" 
                                     unit="%"
                                     icon={Droplets} 
-                                    colorClass="text-blue-400 bg-blue-500/10"
+                                    colorClass="text-blue-400"
                                     nodeVal={averages.humidity} 
                                     tmdVal={tmdData.humidity} 
                                     msnVal={msnData.humidity} 
@@ -360,7 +393,7 @@ const Overall = () => {
                                     title="ความเร็วลม"  
                                     unit="km/h"
                                     icon={Wind} 
-                                    colorClass="text-teal-400 bg-teal-500/10"
+                                    colorClass="text-teal-400"
                                     nodeVal={averages.wind_speed} 
                                     tmdVal={tmdData.wind_speed} 
                                     msnVal={msnData.wind_speed} 
@@ -371,7 +404,17 @@ const Overall = () => {
 
                     </div>
                 )}
-            </div>
+            </main>
+
+            {/* Modals */}
+            <RegisterModal isOpen={isRegisterOpen} onClose={() => setIsRegisterOpen(false)} />
+            <LoginModal
+                isOpen={isLoginOpen}
+                onClose={() => setIsLoginOpen(false)}
+                onOpenRegister={() => setIsRegisterOpen(true)}
+                onLoginSuccess={handleLoginSuccess}
+            />
+            <DownloadModal isOpen={isDownloadOpen} onClose={() => setIsDownloadOpen(false)} selectedNode="AVERAGE" />
         </div>
     );
 };

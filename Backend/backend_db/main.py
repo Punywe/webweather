@@ -42,35 +42,35 @@ async def run_sync_and_update_status():
     global sync_status
     sync_status["last_sync"] = datetime.now(THAILAND_TZ).strftime("%Y-%m-%d %H:%M:%S")
     print(f"🔄 Starting sync session at {sync_status['last_sync']}...")
+    
     try:
         conn = get_connection()
-        # ทำการ sync แยกทีละส่วนเพื่อให้ track สถานะได้ละเอียดขึ้น
-        # 1. Nodes
-        try:
-            # รัน sync_all ใน ThreadPool เพื่อไม่ให้ block event loop
-            loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, sync_all, conn)
-            
-            sync_status["nodes"]["status"] = "success"
-            sync_status["tdm"]["status"] = "success"
-            sync_status["msn"]["status"] = "success"
-            sync_status["weather"]["status"] = "success"
-            sync_status["nodes"]["error"] = None
-            sync_status["tdm"]["error"] = None
-            sync_status["msn"]["error"] = None
-            sync_status["weather"]["error"] = None
-        except Exception as e:
-            sync_status["nodes"]["status"] = "error"
-            sync_status["weather"]["status"] = "error"
-            sync_status["nodes"]["error"] = str(e)
-            sync_status["weather"]["error"] = str(e)
+        loop = asyncio.get_event_loop()
         
+        # รัน sync_all ใน ThreadPool
+        # เราจะแก้ sync_all.py ให้จัดการสถานะภายใน หรือเราจะเช็คผลลัพธ์ที่นี่
+        try:
+            await loop.run_in_executor(None, sync_all, conn)
+            # ถ้า sync_all สำเร็จ (ไม่โยน exception) เราเซ็ต success ทั้งหมดที่ไม่ได้เป็น error มาก่อน
+            for key in ["nodes", "tdm", "msn", "weather"]:
+                sync_status[key]["status"] = "success"
+                sync_status[key]["error"] = None
+        except Exception as e:
+            # ถ้าเกิด error ใน sync_all เราจะพยายามเก็บ error นั้นไว้
+            # หมายเหตุ: sync_all ใน sync_all.py ควรจะ log error แยกส่วนอยู่แล้ว
+            print(f"❌ Sync session error: {e}")
+            sync_status["last_error"] = str(e)
+            # เราไม่เซ็ต error ให้ทุกตัวที่นี่ เพราะ sync_all.py อาจจะรันสำเร็จไปบางส่วน
+            # แต่ถ้ามันพังจน sync_all หลุดออกมา เราจะเซ็ตตัวที่ยังเป็น pending ให้เป็น error
+            for key in ["nodes", "tdm", "msn", "weather"]:
+                if sync_status[key]["status"] == "pending":
+                    sync_status[key]["status"] = "error"
+                    sync_status[key]["error"] = str(e)
+
         conn.close()
         print(f"✅ Sync session completed at {sync_status['last_sync']}")
     except Exception as e:
-        sync_status["tdm"]["status"] = "error"
-        sync_status["tdm"]["error"] = str(e)
-        print(f"❌ Global sync error: {e}")
+        print(f"❌ Global sync connection error: {e}")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

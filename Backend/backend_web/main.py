@@ -87,25 +87,103 @@ async def debug_db():
     except Exception as e:
         return {"error": str(e)}
 
-@app.get("/fixDB")
-async def fix_db():
+@app.get("/debugAll")
+async def debug_all():
     try:
         from shared.database import get_connection
         conn = get_connection()
         cursor = conn.cursor()
         
-        # Add AUTO_INCREMENT to tables
-        # เราต้องระบุทั้ง Type และ PRIMARY KEY (ถ้ายังไม่ได้เป็น) 
-        # หรือถ้าเป็น PK อยู่แล้วก็แค่ MODIFY ให้มี AUTO_INCREMENT
-        cursor.execute("ALTER TABLE tb_tdm MODIFY id INT AUTO_INCREMENT")
-        cursor.execute("ALTER TABLE tb_msn MODIFY id INT AUTO_INCREMENT")
-        cursor.execute("ALTER TABLE tb_node MODIFY id INT AUTO_INCREMENT")
+        # 1. Check all tables
+        cursor.execute("SHOW TABLES")
+        tables = [list(row.values())[0] for row in cursor.fetchall()]
+        
+        # 2. Check nodes count and details
+        cursor.execute("SELECT id, station_id, node_name FROM nodes")
+        nodes_list = cursor.fetchall()
+        
+        # 3. Check tb_node unique names
+        cursor.execute("SELECT DISTINCT node_name FROM tb_node")
+        tb_node_names = cursor.fetchall()
+        
+        # 4. Check tb_node count
+        cursor.execute("SELECT COUNT(*) as count FROM tb_node")
+        tb_node_count = cursor.fetchone()
+
+        # 5. Check tb_user count and names
+        cursor.execute("SELECT username, role FROM tb_user")
+        users_list = cursor.fetchall()
+        
+        conn.close()
+        return {
+            "tables": tables,
+            "nodes": nodes_list,
+            "tb_node_distinct_names": tb_node_names,
+            "tb_node_total_rows": tb_node_count,
+            "users": users_list
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.get("/bootstrap")
+async def bootstrap():
+    from shared.database import get_connection
+    import bcrypt
+    from datetime import datetime
+    conn = get_connection()
+    try:
+        cursor = conn.cursor()
+        
+        # 1. Ensure Admin User exists (admin / admin1234)
+        cursor.execute("SELECT id FROM tb_user WHERE username = %s", ("admin",))
+        admin_user = cursor.fetchone()
+        
+        pwd = "admin1234"
+        hashed = bcrypt.hashpw(pwd.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        
+        if not admin_user:
+            cursor.execute(
+                "INSERT INTO tb_user (username, password, email, role, date_regis) VALUES (%s, %s, %s, %s, %s)",
+                ("admin", hashed, "admin@example.com", "admin", datetime.now())
+            )
+            user_msg = "✅ Admin created (user: admin, pass: admin1234). "
+        else:
+            cursor.execute(
+                "UPDATE tb_user SET password = %s, role = 'admin' WHERE username = %s",
+                (hashed, "admin")
+            )
+            user_msg = "✅ Admin password reset to 'admin1234'. "
+            
+        # 2. Create Default Nodes (Station_1, Station_2) if empty
+        cursor.execute("SELECT COUNT(*) as count FROM nodes")
+        node_count = cursor.fetchone()["count"]
+        if node_count == 0:
+            nodes_to_add = [
+                ("Station_1", "Station 1 (Tak)", 16.883, 99.125),
+                ("Station_2", "Station 2 (Tak)", 16.884, 99.126)
+            ]
+            for s_id, name, lat, lon in nodes_to_add:
+                cursor.execute(
+                    "INSERT INTO nodes (station_id, node_name, latitude, longitude) VALUES (%s, %s, %s, %s)",
+                    (s_id, name, lat, lon)
+                )
+            node_msg = "✅ Nodes Station_1 & Station_2 added. "
+        else:
+            node_msg = "ℹ️ Nodes already exist. "
+            
+        # 3. Reset Sync State & Clear Data (Always reset for now to ensure data comes back)
+        cursor.execute("UPDATE sync_state SET value = '0' WHERE key_name = 'sheet_last_row'")
+        if cursor.rowcount == 0:
+             cursor.execute("INSERT INTO sync_state (key_name, value) VALUES ('sheet_last_row', '0')")
+             
+        cursor.execute("TRUNCATE TABLE tb_node")
         
         conn.commit()
-        conn.close()
-        return {"status": "success", "message": "AUTO_INCREMENT restored to tb_tdm, tb_msn, and tb_node"}
+        return {"status": "success", "message": user_msg + node_msg + " ✅ tb_node truncated & Sync reset to row 0."}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+    finally:
+        conn.close()
 
 if __name__ == "__main__":
     uvicorn.run("backend_web.main:app", host="0.0.0.0", port=8000, reload=True)

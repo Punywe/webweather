@@ -16,14 +16,14 @@ def fetch_msn_data() -> dict:
     options.add_argument("--disable-dev-shm-usage")
 
     driver = webdriver.Chrome(options=options)
-    driver.set_page_load_timeout(30)
-    driver.set_script_timeout(30)
+    driver.set_page_load_timeout(60)
+    driver.set_script_timeout(60)
     try:
         driver.get("https://www.msn.com/th-th/weather/forecast/in-Phop-Phra")
 
-        wait = WebDriverWait(driver, 15, poll_frequency=0.5,
+        wait = WebDriverWait(driver, 30, poll_frequency=0.5,
                              ignored_exceptions=[StaleElementReferenceException])
-        time.sleep(3)
+        time.sleep(5)
 
         def get_text(by, selector):
             for attempt in range(3):

@@ -46,6 +46,9 @@ export const LoginModal = ({ isOpen, onClose, onOpenRegister, onLoginSuccess }) 
             const data = await res.json();
             if (!res.ok) throw new Error(data.detail || 'เกิดข้อผิดพลาด');
             setSuccess(true);
+            // บันทึกข้อมูลลง localStorage เสมอไม่ว่าเป็น admin หรือ user
+            if (onLoginSuccess) onLoginSuccess(data.user);
+
             if (data.user.role === 'admin') {
                 // admin -> ไปหน้า addnode
                 setTimeout(() => {
@@ -54,7 +57,6 @@ export const LoginModal = ({ isOpen, onClose, onOpenRegister, onLoginSuccess }) 
                 }, 1000);
             } else {
                 // user ทั่วไป
-                if (onLoginSuccess) onLoginSuccess(data.user);
                 setTimeout(() => onClose(), 1800);
             }
         } catch (err) {

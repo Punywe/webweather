@@ -20,25 +20,34 @@ export const Card7day = ({ node }) => {
     if (data.length === 0) return <p className='text-gray-400 text-sm'>ไม่มีข้อมูล</p>
 
     return (
-        <>
+        <div className="flex gap-4 overflow-x-auto pb-2 scroll-smooth animate-msn-in">
             {data.map((item, index) => (
-                <div key={index} className='bg-[#37404e] w-30 h-full rounded-lg flex flex-col p-2 justify-center items-center gap-2 shrink-0'>
-                    <div className='flex-1'>
-                        <p className='text-lg font-bold'>{item.day_name}</p>
+                <div 
+                    key={index} 
+                    className='msn-glass msn-card-hover w-28 sm:w-32 rounded-2xl flex flex-col p-4 justify-between items-center gap-3 shrink-0 group'
+                >
+                    <div className='text-center'>
+                        <p className='text-xs font-bold text-blue-300/80 uppercase tracking-widest'>{item.day_name}</p>
+                        <p className='text-[10px] text-gray-500 mt-0.5'>{item.date}</p>
                     </div>
-                    <div className='w-15 h-15'>
+                    
+                    <div className='w-14 h-14 relative'>
+                        <div className="absolute inset-0 bg-white/5 blur-xl rounded-full scale-150"></div>
                         <img 
                             src={item.temp > 30 ? sun : item.temp > 25 ? cloudy : snow}
-                            alt="" className='flex-1' />
+                            alt="Weather" 
+                            className='relative z-10 w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-500' 
+                        />
                     </div>
-                    <div className='flex-1'>
-                        <p>{item.temp}°C</p>
-                    </div>
-                    <div className='flex-1'>
-                        <p className='text-xs'>{item.date}</p>
+                    
+                    <div className='text-center'>
+                        <p className='text-2xl font-bold text-white'>{item.temp}°</p>
+                        <div className="w-8 h-1 bg-blue-500/30 rounded-full mt-2 mx-auto overflow-hidden">
+                            <div className="h-full bg-blue-400" style={{ width: `${Math.min(100, (item.temp / 40) * 100)}%` }}></div>
+                        </div>
                     </div>
                 </div>
             ))}
-        </>
+        </div>
     )
 }

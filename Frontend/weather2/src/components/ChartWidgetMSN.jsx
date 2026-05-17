@@ -95,7 +95,7 @@ export const ChartWidgetMSN = ({ metric = 'temp' }) => {
                                 top: 10,
                                 right: 10,
                                 left: 10,
-                                bottom: 0,
+                                bottom: 25,
                             }}
                         >
                             <defs>
