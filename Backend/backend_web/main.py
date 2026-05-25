@@ -24,6 +24,10 @@ from backend_web.api_add_node import router as add_node_router
 from backend_web.api_download import router as api_download_router
 from backend_web.api_get_data_weather import router as get_data_weather_router
 from backend_web.api_get_24h_weather import router as get_24h_weather_router
+from backend_web.api_get_7day_weather import router as get_7day_weather_router
+from backend_web.api_get_24h_overall import router as get_24h_overall_router
+from backend_web.api_get_recent import router as get_recent_router
+from backend_web.api_get_data_node_summary import router as get_data_node_summary_router
 
 app = FastAPI(
     title="Weather Backend — Web Service",
@@ -55,6 +59,10 @@ app.include_router(add_node_router)
 app.include_router(api_download_router)
 app.include_router(get_data_weather_router)
 app.include_router(get_24h_weather_router)
+app.include_router(get_7day_weather_router)
+app.include_router(get_24h_overall_router)
+app.include_router(get_recent_router)
+app.include_router(get_data_node_summary_router)
 
 @app.get("/debugDB")
 async def debug_db():

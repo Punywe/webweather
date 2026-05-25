@@ -4,13 +4,14 @@ import { Link } from 'react-router-dom';
 import { LoginModal } from '../components/LoginModal';
 import { RegisterModal } from '../components/RegisterModal';
 import { DownloadModal } from '../components/DownloadModal';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const Overall = () => {
     const [averages, setAverages] = useState({ temp: 0, humidity: 0, wind_speed: 0 });
     const [tmdData, setTmdData] = useState({ temp: 0, humidity: 0, wind_speed: 0 });
     const [msnData, setMsnData] = useState({ temp: 0, humidity: 0, wind_speed: 0 });
     const [weatherData, setWeatherData] = useState({ temp: 0, humidity: 0, wind_speed: 0 });
+    const [overall24hData, setOverall24hData] = useState([]);
     const [loading, setLoading] = useState(true);
 
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -117,6 +118,14 @@ const Overall = () => {
                     });
                 }
 
+                // 6. Fetch 24h Overall Data
+                const hours = loggedInUser ? 24 : 7;
+                const overallRes = await fetch(`/api/get24hOverall/?limit_hours=${hours}`);
+                const overallResult = await overallRes.json();
+                if (overallResult.data) {
+                    setOverall24hData(overallResult.data);
+                }
+
             } catch (error) {
                 console.error("Error fetching data:", error);
             } finally {
@@ -125,7 +134,7 @@ const Overall = () => {
         };
 
         fetchAllData();
-    }, []);
+    }, [loggedInUser]);
 
     const formatValue = (val) => Number(val).toFixed(2);
     
@@ -153,28 +162,34 @@ const Overall = () => {
         );
     };
 
-    const MetricBarChart = ({ title, data, unit }) => (
-        <div className="msn-glass bg-[#1E293B]/70 border border-white/5 rounded-3xl p-6 flex flex-col h-[300px] hover:scale-[1.02] transition-transform duration-300 shadow-xl">
+    const MetricLineChart = ({ title, data, dataKeySuffix, unit }) => (
+        <div className="msn-glass bg-[#1E293B]/70 border border-white/5 rounded-3xl p-6 flex flex-col h-[350px] hover:scale-[1.02] transition-transform duration-300 shadow-xl">
             <h3 className="text-white font-bold text-lg mb-4">{title}</h3>
             <div className="flex-1 w-full relative">
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <LineChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                        <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" fontSize={11} tickLine={false} axisLine={false} fontWeight="bold" />
+                        <XAxis dataKey="time" stroke="rgba(255,255,255,0.3)" fontSize={11} tickLine={false} axisLine={false} fontWeight="bold" />
                         <YAxis stroke="rgba(255,255,255,0.3)" fontSize={11} tickLine={false} axisLine={false} width={40} fontWeight="bold" />
                         <Tooltip 
-                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                            cursor={{ stroke: 'rgba(255,255,255,0.1)', strokeWidth: 1, strokeDasharray: '3 3' }}
                             contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.9)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff' }}
                             itemStyle={{ color: '#fff', fontWeight: 'bold' }}
-                            formatter={(value) => [`${formatValue(value)} ${unit}`, 'ค่าที่วัดได้']}
+                            formatter={(value, name) => [value != null ? `${formatValue(value)} ${unit}` : '-', name]}
+                            labelFormatter={(label) => `เวลา: ${label} น.`}
                         />
-                        <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                            {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                        </Bar>
-                    </BarChart>
+                        <Line name="Node" type="monotone" dataKey={`Node${dataKeySuffix}`} stroke="#3B82F6" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} connectNulls />
+                        <Line name="TMD" type="monotone" dataKey={`TMD${dataKeySuffix}`} stroke="#F97316" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} connectNulls />
+                        <Line name="MSN" type="monotone" dataKey={`MSN${dataKeySuffix}`} stroke="#10B981" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} connectNulls />
+                        <Line name="Weather.com" type="monotone" dataKey={`Weather${dataKeySuffix}`} stroke="#06B6D4" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} connectNulls />
+                    </LineChart>
                 </ResponsiveContainer>
+            </div>
+            <div className="flex justify-center items-center gap-4 mt-4">
+                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#3B82F6]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Node</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#F97316]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">TMD</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#10B981]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">MSN</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#06B6D4]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Weather.com</span></div>
             </div>
         </div>
     );
@@ -346,9 +361,9 @@ const Overall = () => {
                         
                         {/* Comparison Charts */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <MetricBarChart title="อุณหภูมิ (°C)" data={tempChartData} unit="°C" />
-                            <MetricBarChart title="ความชื้น (%)" data={humChartData} unit="%" />
-                            <MetricBarChart title="ความเร็วลม (km/h)" data={windChartData} unit="km/h" />
+                            <MetricLineChart title="อุณหภูมิ (°C)" data={overall24hData} dataKeySuffix="_temp" unit="°C" />
+                            <MetricLineChart title="ความชื้น (%)" data={overall24hData} dataKeySuffix="_hum" unit="%" />
+                            <MetricLineChart title="ความเร็วลม (km/h)" data={overall24hData} dataKeySuffix="_wind" unit="km/h" />
                         </div>
 
                         {/* Detailed Comparison Table-like Section */}

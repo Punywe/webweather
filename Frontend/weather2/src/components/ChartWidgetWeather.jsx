@@ -10,7 +10,9 @@ import {
 } from 'recharts';
 
 export const ChartWidgetWeather = ({ metric = 'temp' }) => {
+    const [viewMode, setViewMode] = useState('24h'); // '24h' or '7d'
     const [data24h, setData24h] = useState([]);
+    const [data7d, setData7d] = useState([]);
 
     const metricsConfig = {
         temp: { label: 'อุณหภูมิ', unit: '°C', color: '#3B82F6', dataKey: 'temperature_w' },
@@ -26,27 +28,51 @@ export const ChartWidgetWeather = ({ metric = 'temp' }) => {
                 setData24h(data.data || []);
             })
             .catch(err => console.error("Error fetching 24h Weather data:", err));
+
+        fetch(`/api/get7dayWeather/`)
+            .then(res => res.json())
+            .then(data => {
+                const reversedData = [...(data.data || [])].reverse();
+                setData7d(reversedData);
+            })
+            .catch(err => console.error("Error fetching 7day Weather data:", err));
     }, []);
 
+    const chartData = viewMode === '24h' ? data24h : data7d;
+    const xAxisKey = viewMode === '24h' ? 'time' : 'day_name';
     const currentMetric = metricsConfig[metric] || metricsConfig['temp'];
 
     return (
         <div className="w-full h-full flex flex-col p-4 bg-[#1E293B] rounded-lg relative">
             <div className="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div className="flex items-center gap-3">
-                    <h2 className="text-xl font-bold text-white">{currentMetric.label} (24 ชม.)</h2>
+                    <h2 className="text-xl font-bold text-white">{currentMetric.label}</h2>
+                </div>
+                <div className="flex bg-[#0F172A] rounded p-0.5 shrink-0">
+                    <button 
+                        onClick={() => setViewMode('24h')}
+                        className={`whitespace-nowrap px-2 py-1 rounded text-xs font-medium transition-all duration-300 ${viewMode === '24h' ? 'bg-[#3B82F6] text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                    >
+                        24 ชั่วโมง
+                    </button>
+                    <button 
+                        onClick={() => setViewMode('7d')}
+                        className={`whitespace-nowrap px-2 py-1 rounded text-xs font-medium transition-all duration-300 ${viewMode === '7d' ? 'bg-[#3B82F6] text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                    >
+                        7 วัน
+                    </button>
                 </div>
             </div>
 
-            {data24h.length === 0 ? (
+            {chartData.length === 0 ? (
                 <div className="flex-1 flex justify-center items-center min-h-[200px]">
-                    <p className="text-gray-400">Loading data...</p>
+                    <p className="text-gray-400">ไม่มีข้อมูล</p>
                 </div>
             ) : (
                 <div className="w-full flex-1 min-h-[200px]">
                     <ResponsiveContainer width="100%" height="100%">
                         <AreaChart
-                            data={data24h}
+                            data={chartData}
                             margin={{
                                 top: 10,
                                 right: 10,
@@ -62,7 +88,7 @@ export const ChartWidgetWeather = ({ metric = 'temp' }) => {
                             </defs>
                             <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
                             <XAxis 
-                                dataKey="time" 
+                                dataKey={xAxisKey} 
                                 stroke="#94A3B8" 
                                 fontSize={12}
                                 tickMargin={10} 

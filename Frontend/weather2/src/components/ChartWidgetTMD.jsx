@@ -61,16 +61,16 @@ export const ChartWidgetTMD = ({ metric = 'temp' }) => {
                 <div className="flex items-center gap-3">
                     <h2 className="text-xl font-bold text-white">{currentMetric.label}</h2>
                 </div>
-                <div className="flex bg-[#0F172A] rounded p-0.5">
+                <div className="flex bg-[#0F172A] rounded p-0.5 shrink-0">
                     <button 
                         onClick={() => setViewMode('24h')}
-                        className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ${viewMode === '24h' ? 'bg-[#3B82F6] text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                        className={`whitespace-nowrap px-2 py-1 rounded text-xs font-medium transition-all duration-300 ${viewMode === '24h' ? 'bg-[#3B82F6] text-white shadow' : 'text-gray-400 hover:text-white'}`}
                     >
                         24 ชั่วโมง
                     </button>
                     <button 
                         onClick={() => setViewMode('7d')}
-                        className={`px-2 py-1 rounded text-xs font-medium transition-all duration-300 ${viewMode === '7d' ? 'bg-[#3B82F6] text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                        className={`whitespace-nowrap px-2 py-1 rounded text-xs font-medium transition-all duration-300 ${viewMode === '7d' ? 'bg-[#3B82F6] text-white shadow' : 'text-gray-400 hover:text-white'}`}
                     >
                         7 วัน
                     </button>

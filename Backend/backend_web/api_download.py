@@ -5,6 +5,7 @@ import pymysql.cursors
 import csv
 import io
 from datetime import datetime
+import urllib.parse
 
 router = APIRouter(
     prefix="/api_download",
@@ -134,7 +135,8 @@ async def download_csv_data(
             generate_csv_stream(data, header),
             media_type="text/csv"
         )
-        response.headers["Content-Disposition"] = f'attachment; filename="{filename}"'
+        encoded_filename = urllib.parse.quote(filename)
+        response.headers["Content-Disposition"] = f"attachment; filename*=utf-8''{encoded_filename}"
         return response
 
     except Exception as e:

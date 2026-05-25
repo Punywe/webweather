@@ -10,10 +10,12 @@ import {
 } from 'recharts';
 import { X } from 'lucide-react';
 
-export const ChartWidget = ({ node, metric = 'temp' }) => {
-    const [viewMode, setViewMode] = useState('24h'); // '24h' or '7d'
+export const ChartWidget = ({ node, metric = 'temp', loggedInUser, onRequireLogin, timeMode, onTimeModeChange }) => {
+    const viewMode = timeMode || (loggedInUser ? '24h' : '7h');
     const [data24h, setData24h] = useState([]);
     const [data7d, setData7d] = useState([]);
+    const [dataRecent, setDataRecent] = useState([]);
+    const [loading, setLoading] = useState(false);
 
     const metricsConfig = {
         temp: { label: 'อุณหภูมิ', unit: '°C', color: '#3B82F6' },
@@ -24,29 +26,63 @@ export const ChartWidget = ({ node, metric = 'temp' }) => {
         light: { label: 'แสงสว่าง', unit: 'lux', color: '#EAB308' },
     };
 
+
+
     useEffect(() => {
         if (!node) return;
-        
-        // Fetch 24h
-        fetch(`/api/get24h/${node}`)
-            .then(res => res.json())
-            .then(data => {
-                setData24h(data.data);
-            })
-            .catch(err => console.error("Error fetching 24h data:", err));
-            
-        // Fetch 7day
-        fetch(`/api/get7day/${node}`)
-            .then(res => res.json())
-            .then(data => {
-                setData7d(data.data);
-            })
-            .catch(err => console.error("Error fetching 7day data:", err));
-    }, [node]);
+        setLoading(true);
 
-    const chartData = viewMode === '24h' ? data24h : data7d;
-    const xAxisKey = viewMode === '24h' ? 'time' : 'day_name';
+        if (viewMode === '5m' || viewMode === '30m' || viewMode === '1h' || viewMode === '3h') {
+            let mins = 180;
+            if (viewMode === '5m') mins = 5;
+            else if (viewMode === '30m') mins = 30;
+            else if (viewMode === '1h') mins = 60;
+            else if (viewMode === '3h') mins = 180;
+
+            fetch(`/api/getRecent/${node}?minutes=${mins}`)
+                .then(res => res.json())
+                .then(data => {
+                    setDataRecent(data.data || []);
+                    setLoading(false);
+                })
+                .catch(err => {
+                    console.error("Error fetching recent data:", err);
+                    setLoading(false);
+                });
+        } else if (viewMode === '7h' || viewMode === '24h') {
+            const hours = viewMode === '7h' ? 7 : 24;
+            fetch(`/api/get24h/${node}?limit_hours=${hours}`)
+                .then(res => res.json())
+                .then(data => {
+                    setData24h(data.data || []);
+                    setLoading(false);
+                })
+                .catch(err => {
+                    console.error("Error fetching 24h data:", err);
+                    setLoading(false);
+                });
+        } else if (viewMode === '7d') {
+            fetch(`/api/get7day/${node}`)
+                .then(res => res.json())
+                .then(data => {
+                    setData7d(data.data || []);
+                    setLoading(false);
+                })
+                .catch(err => {
+                    console.error("Error fetching 7day data:", err);
+                    setLoading(false);
+                });
+        }
+    }, [node, viewMode]);
+
+    const chartData = (viewMode === '5m' || viewMode === '30m' || viewMode === '1h' || viewMode === '3h') 
+        ? dataRecent 
+        : (viewMode === '7d' ? data7d : data24h);
+
+    const xAxisKey = viewMode === '7d' ? 'day_name' : 'time';
     const currentMetric = metricsConfig[metric];
+
+
 
     if (!node) return <div className="text-gray-400 text-sm p-4 w-full h-full flex justify-center items-center">กรุณาเลือก Node</div>;
 
@@ -55,33 +91,22 @@ export const ChartWidget = ({ node, metric = 'temp' }) => {
             {/* Background Glow */}
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 blur-[100px] rounded-full"></div>
             
-            <div className="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4 relative z-10">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
-                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 9-7 7-7-7"/></svg>
-                    </div>
-                    <div>
-                        <h2 className="text-lg font-bold text-white tracking-tight">{currentMetric.label}</h2>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold mt-0.5">Historical Data</p>
-                    </div>
+            <div className="w-full flex items-center mb-8 gap-3 relative z-10">
+                <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m19 9-7 7-7-7"/></svg>
                 </div>
-                <div className="flex bg-black/20 backdrop-blur-md rounded-xl p-1 border border-white/5">
-                    <button 
-                        onClick={() => setViewMode('24h')}
-                        className={`px-5 py-2 rounded-lg text-xs font-bold transition-all duration-500 ${viewMode === '24h' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]' : 'text-gray-400 hover:text-white'}`}
-                    >
-                        24 HOURS
-                    </button>
-                    <button 
-                        onClick={() => setViewMode('7d')}
-                        className={`px-5 py-2 rounded-lg text-xs font-bold transition-all duration-500 ${viewMode === '7d' ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]' : 'text-gray-400 hover:text-white'}`}
-                    >
-                        7 DAYS
-                    </button>
+                <div>
+                    <h2 className="text-lg font-bold text-white tracking-tight">{currentMetric.label}</h2>
+                    <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold mt-0.5">Historical Data</p>
                 </div>
             </div>
 
-            {chartData.length === 0 ? (
+            {loading ? (
+                <div className="flex-1 flex flex-col justify-center items-center min-h-[240px] gap-3">
+                    <div className="w-10 h-10 border-4 border-white/10 border-t-blue-500 rounded-full animate-spin"></div>
+                    <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">กำลังดึงข้อมูล...</p>
+                </div>
+            ) : chartData.length === 0 ? (
                 <div className="flex-1 flex flex-col justify-center items-center min-h-[240px] gap-3">
                     <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
                         <X className="text-gray-600" size={24} />

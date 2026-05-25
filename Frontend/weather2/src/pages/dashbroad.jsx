@@ -15,10 +15,11 @@ import { Menu, X } from 'lucide-react'
 import { RegisterModal } from '/src/components/RegisterModal.jsx'
 import { LoginModal } from '/src/components/LoginModal.jsx'
 import { DownloadModal } from '/src/components/DownloadModal.jsx'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 
 
 const Dashboard = () => {
+    const location = useLocation()
     const [node, setNode] = useState([])
     const [selectedNode, setSelectedNode] = useState("สวนทุเรียนแม่แจ๋ว")
     const [dataNode, setDataNode] = useState([])
@@ -45,6 +46,8 @@ const Dashboard = () => {
         } catch { return null }
     })
 
+    const [timeMode, setTimeMode] = useState(loggedInUser ? '24h' : '7h');
+
     const handleLoginSuccess = (user) => {
         const sessionData = { user: user, loginTime: new Date().getTime() };
         localStorage.setItem('weather_user', JSON.stringify(sessionData))
@@ -54,6 +57,17 @@ const Dashboard = () => {
         localStorage.removeItem('weather_user')
         setLoggedInUser(null)
     }
+
+    useEffect(() => {
+        setTimeMode(loggedInUser ? '24h' : '7h');
+    }, [loggedInUser]);
+
+    useEffect(() => {
+        if (location.state?.openLogin) {
+            setIsLoginOpen(true);
+            window.history.replaceState({}, document.title);
+        }
+    }, [location]);
 
     useEffect(() => {
         fetch('/api/getNameNode/')
@@ -67,22 +81,94 @@ const Dashboard = () => {
                 }
             })
     }, [])
+
     useEffect(() => {
-        if (!selectedNode) return
-        fetch(`/api/getDataNode/${selectedNode}`)
-            .then(res => {
-                return res.json()
-            })
+        if (!selectedNode) return;
+        
+        let queryParams = '';
+        if (timeMode === '5m') queryParams = '?minutes=5';
+        else if (timeMode === '30m') queryParams = '?minutes=30';
+        else if (timeMode === '1h') queryParams = '?minutes=60';
+        else if (timeMode === '3h') queryParams = '?minutes=180';
+        else if (timeMode === '7h') queryParams = '?hours=7';
+        else if (timeMode === '24h') queryParams = '?hours=24';
+        else if (timeMode === '7d') queryParams = '?days=7';
+
+        fetch(`/api/getDataNodeSummary/${selectedNode}${queryParams}`)
+            .then(res => res.json())
             .then(data => {
                 setDataNode(data.data?.[0] ?? null)
             })
-    }, [selectedNode])
+            .catch(err => console.error("Error fetching data node summary:", err));
+    }, [selectedNode, timeMode])
 
     const scrollToSection = (id) => {
         const element = document.getElementById(id);
         if (element) {
             const y = element.getBoundingClientRect().top + window.scrollY - 80;
             window.scrollTo({ top: y, behavior: 'smooth' });
+        }
+    };
+
+    const timeOptions = [
+        { mode: '5m', label: '5 นาที' },
+        { mode: '30m', label: '30 นาที' },
+        { mode: '1h', label: '1 ชม.' },
+        { mode: '3h', label: '3 ชม.' },
+        { mode: '24h', label: '24 ชม.' },
+        { mode: '7d', label: '7 วัน' }
+    ];
+
+    const renderTimeButtons = () => {
+        if (loggedInUser) {
+            return (
+                <div className="flex flex-wrap bg-black/20 backdrop-blur-md rounded-xl p-1 border border-white/5 gap-1 shrink-0 self-start lg:self-auto">
+                    {timeOptions.map((opt) => (
+                        <button
+                            key={opt.mode}
+                            onClick={() => setTimeMode(opt.mode)}
+                            className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 ${
+                                timeMode === opt.mode
+                                    ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
+                                    : 'text-slate-400 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            {opt.label}
+                        </button>
+                    ))}
+                </div>
+            );
+        } else {
+            return (
+                <div className="flex flex-wrap bg-black/20 backdrop-blur-md rounded-xl p-1 border border-white/5 gap-1 shrink-0 self-start lg:self-auto">
+                    {timeOptions.slice(0, 4).map((opt) => (
+                        <button
+                            key={opt.mode}
+                            onClick={() => setIsLoginOpen(true)}
+                            className="whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-500 hover:text-slate-300 hover:bg-white/5 flex items-center gap-1 transition-all duration-300"
+                        >
+                            <span>{opt.label}</span>
+                            <span className="text-[9px]">🔒</span>
+                        </button>
+                    ))}
+                    <button
+                        className="whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+                        disabled
+                    >
+                        7 ชม.
+                    </button>
+                    {timeOptions.slice(4).map((opt) => (
+                        <button
+                            key={opt.mode}
+                            onClick={() => setIsLoginOpen(true)}
+                            className="whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-500 hover:text-slate-300 hover:bg-white/5 flex items-center gap-1 transition-all duration-300"
+                        >
+                            <span>{opt.label}</span>
+                            <span className="text-[9px]">🔒</span>
+                        </button>
+                    ))}
+                </div>
+            );
         }
     };
 
@@ -235,7 +321,7 @@ const Dashboard = () => {
                                 nodes={node}
                                 selectedNode={selectedNode}
                                 onNodeSelect={(nodeName) => setSelectedNode(nodeName)}
-                                zoom={12}
+                                zoom={6}
                             />
                             {/* Map Overlay for Dark Mode Feel */}
                             <div className="absolute inset-0 pointer-events-none border-[6px] border-[#0F172A] rounded-[2rem] z-20"></div>
@@ -254,7 +340,7 @@ const Dashboard = () => {
                 {/* 7-Day Forecast Section */}
                 <div className="mt-8">
                     <div className="flex items-center justify-between mb-4 px-2">
-                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-[0.3em]">7-Day Forecast</h3>
+                        <h3 className="text-xs font-bold text-gray-500 uppercase tracking-[0.3em]">7 วันย้อนหลัง</h3>
                         <div className="flex gap-1">
                             <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
                             <div className="w-1.5 h-1.5 rounded-full bg-white/10"></div>
@@ -269,16 +355,29 @@ const Dashboard = () => {
                     <div className="lg:col-span-12 msn-glass rounded-[2rem] p-8">
                         <div className="flex items-center gap-3 mb-6 ">
                             <div className="w-1 h-6 bg-blue-500 rounded-full "></div>
-                            <div className="flex w-full flex-col sm:flex-row sm:items-center justify-between gap-4">                            
+                            <div className="flex w-full flex-col lg:flex-row lg:items-center justify-between gap-4">                            
                                 <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
                                     ข้อมูลทั้งหมดของสถานี <span className="text-blue-500 ml-1">{selectedNode}</span>
                                 </h3>
-                                <Link to={`/detail-hour/${selectedNode}`} className="self-start sm:self-auto shrink-0">
-                                    <button className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/40 text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] whitespace-nowrap">
-                                        <span>รายละเอียดเพิ่มเติม</span>
-                                        <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
-                                    </button>
-                                </Link>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    {renderTimeButtons()}
+                                    {loggedInUser ? (
+                                        <Link to={`/detail-hour/${selectedNode}`} className="self-start lg:self-auto shrink-0">
+                                            <button className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/40 text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.1)] hover:shadow-[0_0_20px_rgba(59,130,246,0.2)] whitespace-nowrap">
+                                                <span>รายละเอียดเพิ่มเติม</span>
+                                                <span className="group-hover:translate-x-1 transition-transform duration-300">→</span>
+                                            </button>
+                                        </Link>
+                                    ) : (
+                                        <button 
+                                            onClick={() => setIsLoginOpen(true)}
+                                            className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/40 text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.1)] whitespace-nowrap self-start lg:self-auto"
+                                        >
+                                            <span>รายละเอียดเพิ่มเติม</span>
+                                            <span className="text-yellow-500">🔒</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
 
                         </div>
@@ -287,22 +386,22 @@ const Dashboard = () => {
 
                     {/* Row 1: Big Chart */}
                     <div className="lg:col-span-12 h-[400px] sm:h-[450px]">
-                        <ChartWidget node={selectedNode} metric="temp" />
+                        <ChartWidget node={selectedNode} metric="temp" loggedInUser={loggedInUser} onRequireLogin={() => setIsLoginOpen(true)} timeMode={timeMode} />
                     </div>
 
                     {/* Row 2+: Other Charts - Horizontal Scroll on Mobile */}
                     <div className="lg:col-span-12 flex lg:grid lg:grid-cols-2 gap-6 overflow-x-auto lg:overflow-visible pb-4 lg:pb-0 snap-x snap-mandatory no-scrollbar">
                         <div className="min-w-[85vw] lg:min-w-0 h-[380px] lg:h-[400px] snap-center shrink-0">
-                            <ChartWidget node={selectedNode} metric="humidity" />
+                            <ChartWidget node={selectedNode} metric="humidity" loggedInUser={loggedInUser} onRequireLogin={() => setIsLoginOpen(true)} timeMode={timeMode} />
                         </div>
                         <div className="min-w-[85vw] lg:min-w-0 h-[380px] lg:h-[400px] snap-center shrink-0">
-                            <ChartWidget node={selectedNode} metric="wind_speed" />
+                            <ChartWidget node={selectedNode} metric="wind_speed" loggedInUser={loggedInUser} onRequireLogin={() => setIsLoginOpen(true)} timeMode={timeMode} />
                         </div>
                         <div className="min-w-[85vw] lg:min-w-0 h-[380px] lg:h-[400px] snap-center shrink-0">
-                            <ChartWidget node={selectedNode} metric="pressure" />
+                            <ChartWidget node={selectedNode} metric="pressure" loggedInUser={loggedInUser} onRequireLogin={() => setIsLoginOpen(true)} timeMode={timeMode} />
                         </div>
                         <div className="min-w-[85vw] lg:min-w-0 h-[380px] lg:h-[400px] snap-center shrink-0">
-                            <ChartWidget node={selectedNode} metric="light" />
+                            <ChartWidget node={selectedNode} metric="light" loggedInUser={loggedInUser} onRequireLogin={() => setIsLoginOpen(true)} timeMode={timeMode} />
                         </div>
                     </div>
                 </div>

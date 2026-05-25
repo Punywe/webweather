@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -21,10 +21,32 @@ const metrics = [
 
 const DetailHour = () => {
     const { node } = useParams();
+    const navigate = useNavigate();
     const [data, setData] = useState([]);
     const [currentData, setCurrentData] = useState(null);
     const [activeMetric, setActiveMetric] = useState('temp');
     const [loading, setLoading] = useState(true);
+
+    // Auth route guard
+    useEffect(() => {
+        try {
+            const user = localStorage.getItem('weather_user');
+            if (!user) {
+                navigate('/', { state: { openLogin: true } });
+                return;
+            }
+            const parsed = JSON.parse(user);
+            if (parsed && parsed.loginTime) {
+                if (new Date().getTime() - parsed.loginTime > 30 * 60 * 1000) {
+                    localStorage.removeItem('weather_user');
+                    navigate('/', { state: { openLogin: true } });
+                    return;
+                }
+            }
+        } catch (e) {
+            navigate('/', { state: { openLogin: true } });
+        }
+    }, [navigate]);
 
     // Calculate Heat Index (Feels Like)
     const calculateHeatIndex = (temp, humidity) => {

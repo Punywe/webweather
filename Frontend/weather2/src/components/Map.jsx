@@ -47,7 +47,7 @@ const FlyToSelected = ({ nodes, selectedNode }) => {
         if (!selectedNode || !nodes || nodes.length === 0) return;
         const target = nodes.find(n => n.node_name === selectedNode);
         if (target && target.latitude != null && target.longitude != null) {
-            map.flyTo([target.latitude, target.longitude], 14, { duration: 1.2 });
+            map.flyTo([target.latitude, target.longitude], 10, { duration: 1.2 });
         }
     }, [selectedNode, nodes, map]);
 
