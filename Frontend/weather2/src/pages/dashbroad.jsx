@@ -95,11 +95,24 @@ const Dashboard = () => {
         else if (timeMode === '7d') queryParams = '?days=7';
 
         fetch(`/api/getDataNodeSummary/${selectedNode}${queryParams}`)
-            .then(res => res.json())
-            .then(data => {
-                setDataNode(data.data?.[0] ?? null)
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error(`Summary API returned status ${res.status}`);
+                }
+                return res.json();
             })
-            .catch(err => console.error("Error fetching data node summary:", err));
+            .then(data => {
+                setDataNode(data.data?.[0] ?? null);
+            })
+            .catch(err => {
+                console.warn("getDataNodeSummary failed, falling back to getDataNode:", err);
+                fetch(`/api/getDataNode/${selectedNode}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        setDataNode(data.data?.[0] ?? null);
+                    })
+                    .catch(e => console.error("Error in fallback getDataNode:", e));
+            });
     }, [selectedNode, timeMode])
 
     const scrollToSection = (id) => {
