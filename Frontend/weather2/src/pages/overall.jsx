@@ -1,10 +1,71 @@
-import { useState, useEffect } from 'react';
-import { Menu, X, ArrowLeft, Thermometer, Droplets, Wind, ArrowUpRight, ArrowDownRight, Minus, BarChart3, Database, CloudSun } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Menu, X, ArrowLeft, Thermometer, Droplets, Wind, ArrowUpRight, ArrowDownRight, Minus, BarChart3, Database, CloudSun, Award, Sparkles } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoginModal } from '../components/LoginModal';
 import { RegisterModal } from '../components/RegisterModal';
 import { DownloadModal } from '../components/DownloadModal';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
+// Helper function to calculate MAE & MAPE of forecast sources against real Node measurements
+const computeErrors = (data, suffix) => {
+    let tmdMaeSum = 0, tmdMapeSum = 0, tmdCount = 0, tmdMapeCount = 0;
+    let msnMaeSum = 0, msnMapeSum = 0, msnCount = 0, msnMapeCount = 0;
+    let weatherMaeSum = 0, weatherMapeSum = 0, weatherCount = 0, weatherMapeCount = 0;
+
+    data.forEach(d => {
+        const nodeVal = d[`Node${suffix}`] !== null && d[`Node${suffix}`] !== undefined ? Number(d[`Node${suffix}`]) : null;
+        if (nodeVal === null || isNaN(nodeVal)) return;
+
+        const tmdVal = d[`TMD${suffix}`] !== null && d[`TMD${suffix}`] !== undefined ? Number(d[`TMD${suffix}`]) : null;
+        const msnVal = d[`MSN${suffix}`] !== null && d[`MSN${suffix}`] !== undefined ? Number(d[`MSN${suffix}`]) : null;
+        const weatherVal = d[`Weather${suffix}`] !== null && d[`Weather${suffix}`] !== undefined ? Number(d[`Weather${suffix}`]) : null;
+
+        if (tmdVal !== null && !isNaN(tmdVal)) {
+            const err = Math.abs(nodeVal - tmdVal);
+            tmdMaeSum += err;
+            tmdCount++;
+            if (nodeVal !== 0) {
+                tmdMapeSum += err / Math.abs(nodeVal);
+                tmdMapeCount++;
+            }
+        }
+
+        if (msnVal !== null && !isNaN(msnVal)) {
+            const err = Math.abs(nodeVal - msnVal);
+            msnMaeSum += err;
+            msnCount++;
+            if (nodeVal !== 0) {
+                msnMapeSum += err / Math.abs(nodeVal);
+                msnMapeCount++;
+            }
+        }
+
+        if (weatherVal !== null && !isNaN(weatherVal)) {
+            const err = Math.abs(nodeVal - weatherVal);
+            weatherMaeSum += err;
+            weatherCount++;
+            if (nodeVal !== 0) {
+                weatherMapeSum += err / Math.abs(nodeVal);
+                weatherMapeCount++;
+            }
+        }
+    });
+
+    return {
+        TMD: {
+            MAE: tmdCount > 0 ? tmdMaeSum / tmdCount : null,
+            MAPE: tmdMapeCount > 0 ? (tmdMapeSum / tmdMapeCount) * 100 : null
+        },
+        MSN: {
+            MAE: msnCount > 0 ? msnMaeSum / msnCount : null,
+            MAPE: msnMapeCount > 0 ? (msnMapeSum / msnMapeCount) * 100 : null
+        },
+        Weather: {
+            MAE: weatherCount > 0 ? weatherMaeSum / weatherCount : null,
+            MAPE: weatherMapeCount > 0 ? (weatherMapeSum / weatherMapeCount) * 100 : null
+        }
+    };
+};
 
 const Overall = () => {
     const [averages, setAverages] = useState({ temp: 0, humidity: 0, wind_speed: 0 });
@@ -19,6 +80,10 @@ const Overall = () => {
     const [isRegisterOpen, setIsRegisterOpen] = useState(false);
     const [isDownloadOpen, setIsDownloadOpen] = useState(false);
     const [loggedInUser, setLoggedInUser] = useState(null);
+
+    // States for MAE / MAPE calculations and UI toggles
+    const [errorMetricType, setErrorMetricType] = useState('MAE'); // 'MAE' or 'MAPE'
+    const [showEnsemble, setShowEnsemble] = useState(true); // Toggle to show/hide the MAE Ensemble line
 
     useEffect(() => {
         try {
@@ -61,26 +126,31 @@ const Overall = () => {
                 const nodePromises = nodes.map(node => fetch(`/api/getDataNode/${node.node_name}`).then(res => res.json()));
                 const nodeResults = await Promise.all(nodePromises);
 
-                let totalTemp = 0, totalHum = 0, totalWind = 0;
-                let validNodesCount = 0;
+                const temps = [];
+                const hums = [];
+                const winds = [];
 
                 nodeResults.forEach(res => {
                     const data = res.data && res.data[0];
                     if (data) {
-                        totalTemp += data.temp || 0;
-                        totalHum += data.humidity || 0;
-                        totalWind += data.wind_speed || 0;
-                        validNodesCount++;
+                        if (data.temp > 0) temps.push(data.temp);
+                        if (data.humidity > 0) hums.push(data.humidity);
+                        if (data.wind_speed > 0) winds.push(data.wind_speed);
                     }
                 });
 
-                if (validNodesCount > 0) {
-                    setAverages({
-                        temp: totalTemp / validNodesCount,
-                        humidity: totalHum / validNodesCount,
-                        wind_speed: totalWind / validNodesCount
-                    });
-                }
+                const getMedian = (arr) => {
+                    if (arr.length === 0) return 0;
+                    arr.sort((a, b) => a - b);
+                    const mid = Math.floor(arr.length / 2);
+                    return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2;
+                };
+
+                setAverages({
+                    temp: getMedian(temps),
+                    humidity: getMedian(hums),
+                    wind_speed: getMedian(winds)
+                });
 
                 // 3. Fetch TMD Data
                 const tmdRes = await fetch('/api/getCurrentTMD/');
@@ -137,30 +207,28 @@ const Overall = () => {
     }, [loggedInUser]);
 
     const formatValue = (val) => Number(val).toFixed(2);
-    
-    const calcDiff = (nodeVal, otherVal) => {
-        if (!otherVal || otherVal === 0) return { diff: 0, percent: 0, sign: 0 };
-        const diff = nodeVal - otherVal;
-        const percent = (Math.abs(diff) / otherVal) * 100;
-        return { 
-            diff: diff, 
-            percent: percent, 
-            sign: diff > 0 ? 1 : diff < 0 ? -1 : 0 
-        };
-    };
 
-    const getDiffBadge = (difference) => {
-        const absDiff = Math.abs(difference.diff);
-        const absPercent = Math.abs(difference.percent);
-        
-        return (
-            <div className="flex items-center gap-1 text-gray-300 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 border border-white/10">
-                <span className="text-[10px] text-gray-400">ต่างกัน</span>
-                <span className="text-white font-bold">{formatValue(absDiff)}</span>
-                <span className="text-gray-400">({formatValue(absPercent)}%)</span>
-            </div>
-        );
-    };
+    // Compute MAE & MAPE for the 24h data
+    const maeData = useMemo(() => {
+        if (!overall24hData || overall24hData.length === 0) {
+            return {
+                temp: { TMD: { MAE: 0, MAPE: 0 }, MSN: { MAE: 0, MAPE: 0 }, Weather: { MAE: 0, MAPE: 0 } },
+                hum: { TMD: { MAE: 0, MAPE: 0 }, MSN: { MAE: 0, MAPE: 0 }, Weather: { MAE: 0, MAPE: 0 } },
+                wind: { TMD: { MAE: 0, MAPE: 0 }, MSN: { MAE: 0, MAPE: 0 }, Weather: { MAE: 0, MAPE: 0 } }
+            };
+        }
+
+        const metrics = ['_temp', '_hum', '_wind'];
+        const keys = { _temp: 'temp', _hum: 'hum', _wind: 'wind' };
+        const results = {};
+
+        metrics.forEach(m => {
+            const key = keys[m];
+            results[key] = computeErrors(overall24hData, m);
+        });
+
+        return results;
+    }, [overall24hData]);
 
     const MetricLineChart = ({ title, data, dataKeySuffix, unit }) => (
         <div className="msn-glass bg-[#1E293B]/70 border border-white/5 rounded-3xl p-6 flex flex-col h-[350px] hover:scale-[1.02] transition-transform duration-300 shadow-xl">
@@ -186,18 +254,15 @@ const Overall = () => {
                 </ResponsiveContainer>
             </div>
             <div className="flex justify-center items-center gap-4 mt-4">
-                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#3B82F6]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Node</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#F97316]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">TMD</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#10B981]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">MSN</span></div>
-                <div className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-[#06B6D4]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Weather.com</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Node</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#F97316]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">TMD</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#10B981]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">MSN</span></div>
+                <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-full bg-[#06B6D4]"></div><span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Weather.com</span></div>
             </div>
         </div>
     );
 
-    const OverviewItem = ({ title, nodeVal, tmdVal, msnVal, weatherVal, unit, icon: Icon, colorClass }) => {
-        const diffTMD = calcDiff(nodeVal, tmdVal);
-        const diffMSN = calcDiff(nodeVal, msnVal);
-        const diffWeather = calcDiff(nodeVal, weatherVal);
+    const OverviewItem = ({ title, unit, icon: Icon, colorClass, tmdErr, msnErr, weatherErr }) => {
         return (
             <div className="flex flex-col xl:flex-row xl:items-center justify-between p-5 border-b border-[#334155]/40 last:border-0 hover:bg-[#0F172A]/40 transition-colors">
                 <div className="flex items-center gap-3 mb-4 xl:mb-0 w-48">
@@ -209,39 +274,57 @@ const Overall = () => {
                 
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
                      <div className="flex flex-col bg-[#1E293B]/60 p-4 rounded-xl border border-[#334155]/60 hover:border-blue-500/30 transition-colors">
-                         <span className="text-xs text-gray-400 mb-2 font-medium">ส่วนต่างจาก กรมอุตุ</span>
+                         <span className="text-xs text-gray-400 mb-2 font-medium">ค่าคลาดเคลื่อน กรมอุตุฯ (TMD)</span>
                          <div className="flex justify-between items-center">
                              <div className="flex items-baseline gap-1">
-                                 <span className="text-lg font-bold text-gray-100">{formatValue(nodeVal)}</span>
-                                 <span className="text-xs text-gray-500">vs {formatValue(tmdVal)} {unit}</span>
+                                 <span className="text-lg font-bold text-gray-100">
+                                     {tmdErr && tmdErr.MAE !== null ? `${formatValue(tmdErr.MAE)}` : 'N/A'}
+                                 </span>
+                                 <span className="text-xs text-gray-500">vs TMD ({unit})</span>
                              </div>
-                             {getDiffBadge(diffTMD)}
+                             {tmdErr && tmdErr.MAPE !== null && (
+                                 <div className="flex items-center gap-1 text-gray-300 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 border border-white/10">
+                                     <span className="text-gray-400">({formatValue(tmdErr.MAPE)}%)</span>
+                                 </div>
+                             )}
                          </div>
                      </div>
                      <div className="flex flex-col bg-[#1E293B]/60 p-4 rounded-xl border border-[#334155]/60 hover:border-emerald-500/30 transition-colors">
-                         <span className="text-xs text-gray-400 mb-2 font-medium">ส่วนต่างจาก MSN</span>
+                         <span className="text-xs text-gray-400 mb-2 font-medium">ค่าคลาดเคลื่อน MSN</span>
                          <div className="flex justify-between items-center">
                              <div className="flex items-baseline gap-1">
-                                 <span className="text-lg font-bold text-gray-100">{formatValue(nodeVal)}</span>
-                                 <span className="text-xs text-gray-500">vs {formatValue(msnVal)} {unit}</span>
+                                 <span className="text-lg font-bold text-gray-100">
+                                     {msnErr && msnErr.MAE !== null ? `${formatValue(msnErr.MAE)}` : 'N/A'}
+                                 </span>
+                                 <span className="text-xs text-gray-500">vs MSN ({unit})</span>
                              </div>
-                             {getDiffBadge(diffMSN)}
+                             {msnErr && msnErr.MAPE !== null && (
+                                 <div className="flex items-center gap-1 text-gray-300 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 border border-white/10">
+                                     <span className="text-gray-400">({formatValue(msnErr.MAPE)}%)</span>
+                                 </div>
+                             )}
                          </div>
                      </div>
                      <div className="flex flex-col bg-[#1E293B]/60 p-4 rounded-xl border border-[#334155]/60 hover:border-cyan-500/30 transition-colors">
-                         <span className="text-xs text-gray-400 mb-2 font-medium">ส่วนต่างจาก Weather.com</span>
+                         <span className="text-xs text-gray-400 mb-2 font-medium">ค่าคลาดเคลื่อน Weather.com</span>
                          <div className="flex justify-between items-center">
                              <div className="flex items-baseline gap-1">
-                                 <span className="text-lg font-bold text-gray-100">{formatValue(nodeVal)}</span>
-                                 <span className="text-xs text-gray-500">vs {formatValue(weatherVal)} {unit}</span>
+                                 <span className="text-lg font-bold text-gray-100">
+                                     {weatherErr && weatherErr.MAE !== null ? `${formatValue(weatherErr.MAE)}` : 'N/A'}
+                                 </span>
+                                 <span className="text-xs text-gray-500">vs Weather ({unit})</span>
                              </div>
-                             {getDiffBadge(diffWeather)}
+                             {weatherErr && weatherErr.MAPE !== null && (
+                                 <div className="flex items-center gap-1 text-gray-300 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 border border-white/10">
+                                     <span className="text-gray-400">({formatValue(weatherErr.MAPE)}%)</span>
+                                 </div>
+                             )}
                          </div>
                      </div>
                 </div>
             </div>
-        )
-    }
+        );
+    };
 
     const tempChartData = [
         { name: 'Node', value: averages.temp, color: '#3B82F6' },
@@ -364,6 +447,54 @@ const Overall = () => {
                             <MetricLineChart title="อุณหภูมิ (°C)" data={overall24hData} dataKeySuffix="_temp" unit="°C" />
                             <MetricLineChart title="ความชื้น (%)" data={overall24hData} dataKeySuffix="_hum" unit="%" />
                             <MetricLineChart title="ความเร็วลม (km/h)" data={overall24hData} dataKeySuffix="_wind" unit="km/h" />
+                        </div>
+
+                        {/* Detailed Comparison Table-like Section */}
+                        <div className="msn-glass rounded-[2.5rem] overflow-hidden p-2">
+                            <div className="w-full bg-blue-600 p-6 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-[2rem]">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                                        <BarChart3 size={24} className="text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white tracking-tight">ภาพรวมความคลาดเคลื่อนสะสม (MAE / MAPE)</h3>
+                                        <p className="text-blue-100 text-xs font-medium">วิเคราะห์จากข้อมูลสภาพอากาศในช่วง 24 ชั่วโมงที่ผ่านมาเทียบกับสถานีตรวจวัดจริง</p>
+                                    </div>
+                                </div>
+                                <div className="px-4 py-2 bg-black/20 rounded-xl border border-white/10 text-[10px] font-bold text-white uppercase tracking-widest">
+                                    Last Analysis: {new Date().toLocaleTimeString()}
+                                </div>
+                            </div>
+
+                            <div className="mt-4 px-2 sm:px-6 divide-y divide-white/5">
+                                <OverviewItem 
+                                    title="อุณหภูมิ" 
+                                    unit="°C"
+                                    icon={Thermometer} 
+                                    colorClass="text-rose-400"
+                                    tmdErr={maeData.temp.TMD} 
+                                    msnErr={maeData.temp.MSN} 
+                                    weatherErr={maeData.temp.Weather}
+                                />
+                                <OverviewItem 
+                                    title="ความชื้น" 
+                                    unit="%"
+                                    icon={Droplets} 
+                                    colorClass="text-blue-400"
+                                    tmdErr={maeData.hum.TMD} 
+                                    msnErr={maeData.hum.MSN} 
+                                    weatherErr={maeData.hum.Weather}
+                                />
+                                <OverviewItem 
+                                    title="ความเร็วลม"  
+                                    unit="km/h"
+                                    icon={Wind} 
+                                    colorClass="text-teal-400"
+                                    tmdErr={maeData.wind.TMD} 
+                                    msnErr={maeData.wind.MSN} 
+                                    weatherErr={maeData.wind.Weather}
+                                />
+                            </div>
                         </div>
 
                         {/* Detailed Comparison Table-like Section */}

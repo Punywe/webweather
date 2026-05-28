@@ -14,14 +14,7 @@ async def get_24h_overall(limit_hours: int = 24):
     try:
         cursor = conn.cursor(pymysql.cursors.DictCursor)
 
-        cursor.execute("SELECT MAX(date_time) as latest_time FROM tb_node;")
-        latest = cursor.fetchone()
-        
-        if not latest or not latest["latest_time"]:
-            latest_time = datetime.now()
-        else:
-            latest_time = latest["latest_time"]
-
+        latest_time = datetime.now()
         start_time = latest_time - timedelta(hours=limit_hours)
 
         hourly_data = {}

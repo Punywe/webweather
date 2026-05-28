@@ -19,7 +19,7 @@ from backend_db.api_add_tdm import router as add_tdm_router
 from backend_db.api_add_msn import router as add_msn_router
 from backend_db.api_add_weather import router as add_weather_router
 
-SYNC_INTERVAL = 30 * 60  # 30 นาที (วินาที)
+SYNC_INTERVAL = 5 * 60  # 5 นาที (วินาที)
 
 # เก็บสถานะการ sync ล่าสุด
 sync_status = {
@@ -31,7 +31,7 @@ sync_status = {
 }
 
 async def sync_scheduler():
-    """Background task: รัน sync_all ทุกๆ 30 นาที"""
+    """Background task: รัน sync_all ทุกๆ 5 นาที"""
     # รอให้ Server startup ให้เสร็จก่อน 5 วินาทีค่อยเริ่ม sync ครั้งแรก
     await asyncio.sleep(5)
     while True:

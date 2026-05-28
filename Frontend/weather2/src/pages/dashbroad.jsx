@@ -135,12 +135,12 @@ const Dashboard = () => {
     const renderTimeButtons = () => {
         if (loggedInUser) {
             return (
-                <div className="flex flex-wrap bg-black/20 backdrop-blur-md rounded-xl p-1 border border-white/5 gap-1 shrink-0 self-start lg:self-auto">
+                <div className="flex overflow-x-auto no-scrollbar bg-black/20 backdrop-blur-md rounded-xl p-1 border border-white/5 gap-1 w-full max-w-full lg:w-auto lg:self-auto">
                     {timeOptions.map((opt) => (
                         <button
                             key={opt.mode}
                             onClick={() => setTimeMode(opt.mode)}
-                            className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 ${
+                            className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all duration-300 shrink-0 ${
                                 timeMode === opt.mode
                                     ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]'
                                     : 'text-slate-400 hover:text-white hover:bg-white/5'
@@ -153,19 +153,19 @@ const Dashboard = () => {
             );
         } else {
             return (
-                <div className="flex flex-wrap bg-black/20 backdrop-blur-md rounded-xl p-1 border border-white/5 gap-1 shrink-0 self-start lg:self-auto">
+                <div className="flex overflow-x-auto no-scrollbar bg-black/20 backdrop-blur-md rounded-xl p-1 border border-white/5 gap-1 w-full max-w-full lg:w-auto lg:self-auto">
                     {timeOptions.slice(0, 4).map((opt) => (
                         <button
                             key={opt.mode}
                             onClick={() => setIsLoginOpen(true)}
-                            className="whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-500 hover:text-slate-300 hover:bg-white/5 flex items-center gap-1 transition-all duration-300"
+                            className="whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-500 hover:text-slate-300 hover:bg-white/5 flex items-center gap-1 transition-all duration-300 shrink-0"
                         >
                             <span>{opt.label}</span>
                             <span className="text-[9px]">🔒</span>
                         </button>
                     ))}
                     <button
-                        className="whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)]"
+                        className="whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.4)] shrink-0"
                         disabled
                     >
                         7 ชม.
@@ -174,7 +174,7 @@ const Dashboard = () => {
                         <button
                             key={opt.mode}
                             onClick={() => setIsLoginOpen(true)}
-                            className="whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-500 hover:text-slate-300 hover:bg-white/5 flex items-center gap-1 transition-all duration-300"
+                            className="whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-500 hover:text-slate-300 hover:bg-white/5 flex items-center gap-1 transition-all duration-300 shrink-0"
                         >
                             <span>{opt.label}</span>
                             <span className="text-[9px]">🔒</span>
@@ -206,11 +206,11 @@ const Dashboard = () => {
                     </div>
 
                     <div className="hidden lg:flex items-center gap-6 text-[12px] font-bold uppercase tracking-widest text-gray-400">
-                        <p onClick={() => scrollToSection('home')} className="cursor-pointer hover:text-white transition-colors">HOME</p>
-                        <p onClick={() => scrollToSection('tmd')} className="cursor-pointer hover:text-white transition-colors">TMD</p>
+                        <p onClick={() => scrollToSection('home')} className="cursor-pointer hover:text-white transition-colors">หน้าแรก</p>
+                        <p onClick={() => scrollToSection('tmd')} className="cursor-pointer hover:text-white transition-colors">กรมอุตุนิยมวิทยา</p>
                         <p onClick={() => scrollToSection('weather')} className="cursor-pointer hover:text-white transition-colors">WEATHER</p>
                         <p onClick={() => scrollToSection('msn')} className="cursor-pointer hover:text-white transition-colors">MSN</p>
-                        <Link to="/overall" className="hover:text-white transition-colors">OVERALL</Link>
+                        <Link to="/overall" className="hover:text-white transition-colors">ภาพรวม</Link>
                     </div>
 
                     <div className='hidden md:flex items-center gap-6'>
@@ -252,11 +252,11 @@ const Dashboard = () => {
                 {isMobileMenuOpen && (
                     <div className="md:hidden flex flex-col gap-6 pb-8 pt-4 border-t border-white/5 animate-msn-in">
                         <div className="flex flex-col gap-4 text-sm font-bold uppercase tracking-widest text-gray-400 pl-2">
-                            <p onClick={() => { scrollToSection('home'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">HOME</p>
-                            <p onClick={() => { scrollToSection('tmd'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">TMD</p>
-                            <p onClick={() => { scrollToSection('weather'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">WEATHER</p>
-                            <p onClick={() => { scrollToSection('msn'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">MSN</p>
-                            <Link to="/overall" className="hover:text-white transition-colors">OVERALL</Link>
+                            <p onClick={() => { scrollToSection('home'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">หน้าแรก</p>
+                            <p onClick={() => { scrollToSection('tmd'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">กรมอุตุนิยมวิทยา</p>
+                            <p onClick={() => { scrollToSection('weather'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">Weather.com</p>
+                            <p onClick={() => { scrollToSection('msn'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">MSN Weather</p>
+                            <Link to="/overall" className="hover:text-white transition-colors">ภาพรวม</Link>
                             {loggedInUser?.role === 'admin' && (
                                 <Link to="/addnode" className="text-emerald-400 hover:text-emerald-300 transition-colors">ADMIN</Link>
                             )}

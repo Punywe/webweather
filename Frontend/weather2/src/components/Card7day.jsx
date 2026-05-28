@@ -34,7 +34,7 @@ export const Card7day = ({ node }) => {
                     <div className='w-14 h-14 relative'>
                         <div className="absolute inset-0 bg-white/5 blur-xl rounded-full scale-150"></div>
                         <img 
-                            src={item.temp > 30 ? sun : item.temp > 25 ? cloudy : snow}
+                            src={item.temp > 30 ? sun : item.temp > 19 ? cloudy : snow}
                             alt="Weather" 
                             className='relative z-10 w-full h-full object-contain drop-shadow-md group-hover:scale-110 transition-transform duration-500' 
                         />

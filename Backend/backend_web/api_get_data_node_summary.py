@@ -15,11 +15,12 @@ async def get_data_node_summary(name_node: str, minutes: int = None, hours: int 
     try:
         cursor = conn.cursor(pymysql.cursors.DictCursor)
 
-        # 1. Find the latest timestamp for the node
+        # 1. Find the latest timestamp and wind_dir for the node
         cursor.execute("""
-            SELECT MAX(date_time) as latest_time
+            SELECT date_time as latest_time, wind_dir
             FROM tb_node
-            WHERE node_name = %s;
+            WHERE node_name = %s
+            ORDER BY date_time DESC LIMIT 1;
         """, (clean_name,))
         latest = cursor.fetchone()
 
@@ -49,6 +50,7 @@ async def get_data_node_summary(name_node: str, minutes: int = None, hours: int 
                 return {"data": []}
             return {
                 "data": [{
+                    "node_name": clean_name,
                     "temp": float(row["temp"]) if row["temp"] is not None else 0,
                     "humidity": float(row["humidity"]) if row["humidity"] is not None else 0,
                     "wind_speed": float(row["wind_speed"]) if row["wind_speed"] is not None else 0,
@@ -71,8 +73,7 @@ async def get_data_node_summary(name_node: str, minutes: int = None, hours: int 
                 AVG(rain_24h) as rain_24h, 
                 AVG(pressure) as pressure, 
                 AVG(light) as light, 
-                AVG(wind_gust) as wind_gust,
-                AVG(wind_dir) as wind_dir
+                AVG(wind_gust) as wind_gust
             FROM tb_node
             WHERE node_name = %s
             AND date_time > %s - {interval_sql}
@@ -86,6 +87,7 @@ async def get_data_node_summary(name_node: str, minutes: int = None, hours: int 
 
         return {
             "data": [{
+                "node_name": clean_name,
                 "temp": round(float(row["temp"]), 2) if row["temp"] is not None else 0,
                 "humidity": round(float(row["humidity"]), 2) if row["humidity"] is not None else 0,
                 "wind_speed": round(float(row["wind_speed"]), 2) if row["wind_speed"] is not None else 0,
@@ -94,7 +96,7 @@ async def get_data_node_summary(name_node: str, minutes: int = None, hours: int 
                 "pressure": round(float(row["pressure"]), 2) if row["pressure"] is not None else 0,
                 "light": round(float(row["light"]), 2) if row["light"] is not None else 0,
                 "wind_gust": round(float(row["wind_gust"]), 2) if row["wind_gust"] is not None else 0,
-                "wind_dir": str(round(float(row["wind_dir"]), 1)) if row["wind_dir"] is not None else "--",
+                "wind_dir": str(latest["wind_dir"]) if latest.get("wind_dir") is not None else "--",
             }]
         }
 

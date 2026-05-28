@@ -36,7 +36,7 @@ export const CardCurrentMSN = () => {
         <div className="bg-[#202124] text-white p-5 md:p-6 rounded-2xl w-[95%] mx-auto font-outfit shadow-lg flex flex-col md:flex-row justify-between items-center transition-all duration-300">
             <div className="flex flex-col md:flex-row items-center gap-4 md:gap-8 w-full md:w-auto">
                 <div className="w-20 md:w-24 h-full flex justify-center items-center drop-shadow-md">
-                    <img src={data.temp > 30 ? sun : data.temp > 25 ? cloudy : snow} alt="Weather Icon" className="w-full h-auto object-contain" />
+                    <img src={data.temp > 30 ? sun : data.temp > 19 ? cloudy : snow} alt="Weather Icon" className="w-full h-auto object-contain" />
                 </div>
                 <div className="flex flex-col items-center md:items-start text-center md:text-left">
                     <div className="flex items-start">

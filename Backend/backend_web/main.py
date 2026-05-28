@@ -28,6 +28,7 @@ from backend_web.api_get_7day_weather import router as get_7day_weather_router
 from backend_web.api_get_24h_overall import router as get_24h_overall_router
 from backend_web.api_get_recent import router as get_recent_router
 from backend_web.api_get_data_node_summary import router as get_data_node_summary_router
+from backend_web.get_max_data_node import router as get_max_data_node_router
 
 app = FastAPI(
     title="Weather Backend — Web Service",
@@ -63,6 +64,7 @@ app.include_router(get_7day_weather_router)
 app.include_router(get_24h_overall_router)
 app.include_router(get_recent_router)
 app.include_router(get_data_node_summary_router)
+app.include_router(get_max_data_node_router)
 
 @app.get("/debugDB")
 async def debug_db():

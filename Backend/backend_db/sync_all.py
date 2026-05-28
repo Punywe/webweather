@@ -27,22 +27,30 @@ def sync_all(conn):
         data_tdm = fetch_tdm_data()
         if data_tdm.get("ok"):
             cursor = conn.cursor()
-            cursor.execute(
-                """
-                INSERT INTO tb_tdm (date_time, temperature_tdm, humidity_tdm, rain_tdm, wind_speed_tdm, weather_text_tdm)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                """,
-                (
-                    datetime.fromisoformat(data_tdm['data']['time']).astimezone(THAILAND_TZ).strftime("%Y-%m-%d %H:%M:%S"),
-                    data_tdm['data']['tc'],
-                    data_tdm['data']['rh'],
-                    data_tdm['data']['rain'],
-                    data_tdm['data']['ws10m'],
-                    data_tdm['data']['cond']['text_th']
+            tdm_time = datetime.fromisoformat(data_tdm['data']['time']).astimezone(THAILAND_TZ).strftime("%Y-%m-%d %H:%M:%S")
+            # ตรวจสอบว่า timestamp นี้มีอยู่แล้วหรือเปล่า
+            cursor.execute("SELECT COUNT(*) FROM tb_tdm WHERE date_time = %s", (tdm_time,))
+            row = cursor.fetchone()
+            count = (list(row.values())[0] if isinstance(row, dict) else row[0]) if row else 0
+            if count == 0:
+                cursor.execute(
+                    """
+                    INSERT INTO tb_tdm (date_time, temperature_tdm, humidity_tdm, rain_tdm, wind_speed_tdm, weather_text_tdm)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    """,
+                    (
+                        tdm_time,
+                        data_tdm['data']['tc'],
+                        data_tdm['data']['rh'],
+                        data_tdm['data']['rain'],
+                        data_tdm['data']['ws10m'],
+                        data_tdm['data']['cond']['text_th']
+                    )
                 )
-            )
-            conn.commit()
-            print("✅ TDM sync completed")
+                conn.commit()
+                print("✅ TDM sync completed")
+            else:
+                print(f"⏭️ TDM sync skipped: timestamp {tdm_time} already exists")
         else:
             print(f"⚠️ TDM sync skipped: {data_tdm.get('error')}")
     except Exception as e:

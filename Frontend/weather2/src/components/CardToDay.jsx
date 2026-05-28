@@ -26,7 +26,7 @@ export const CardToDay = ({ node }) => {
                 <div className="relative group shrink-0">
                     <div className="absolute inset-0 bg-blue-400/20 blur-[50px] rounded-full group-hover:bg-blue-400/40 transition-all duration-700 scale-125"></div>
                     <img 
-                        src={node.temp > 30 ? sun : node.temp > 25 ? cloudy : snow} 
+                        src={node.temp > 30 ? sun : node.temp > 19 ? cloudy : snow} 
                         alt="Weather" 
                         className="w-32 sm:w-44 relative z-10 drop-shadow-[0_20px_30px_rgba(0,0,0,0.4)] transform transition-all duration-700 group-hover:scale-110 group-hover:-rotate-3" 
                     />

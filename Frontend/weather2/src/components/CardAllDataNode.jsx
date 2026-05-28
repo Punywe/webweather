@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Thermometer, 
   Droplets, 
@@ -25,13 +25,49 @@ const DataCard = ({ title, value, unit, icon: Icon, iconColor, bgLight }) => (
 );
 
 export const CardAllDataNode = ({ node }) => {
+  const [maxData, setMaxData] = useState(null);
+
+  useEffect(() => {
+    if (!node) return;
+
+    // Check if any displayed value is 0
+    const hasZero = 
+      node.temp === 0 || 
+      node.humidity === 0 || 
+      node.light === 0 || 
+      node.wind_speed === 0 || 
+      node.wind_gust === 0 || 
+      node.pressure === 0 || 
+      node.rain_1h === 0 || 
+      node.rain_24h === 0;
+
+    if (hasZero && node.node_name) {
+      fetch(`/api/getMaxDataNode/${node.node_name}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.length > 0) {
+            setMaxData(data[0]);
+          }
+        })
+        .catch(err => console.error("Error fetching max data:", err));
+    }
+  }, [node]);
+
   if (!node) return null;
+
+  // Function to resolve the value to display (use maxData if value is 0)
+  const getValue = (key) => {
+    if (node[key] === 0 && maxData && maxData[key] !== undefined) {
+      return maxData[key];
+    }
+    return node[key];
+  };
 
   return (
     <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mt-5 w-full'>   
         <DataCard 
           title="อุณหภูมิ" 
-          value={node.temp} 
+          value={getValue('temp')} 
           unit="°C" 
           icon={Thermometer} 
           iconColor="text-rose-400" 
@@ -39,7 +75,7 @@ export const CardAllDataNode = ({ node }) => {
         />
         <DataCard 
           title="ความชื้น" 
-          value={node.humidity} 
+          value={getValue('humidity')} 
           unit="%" 
           icon={Droplets} 
           iconColor="text-blue-400" 
@@ -47,7 +83,7 @@ export const CardAllDataNode = ({ node }) => {
         />
         <DataCard 
           title="ความเข้มแสง" 
-          value={node.light} 
+          value={getValue('light')} 
           unit="" 
           icon={CloudRain} 
           iconColor="text-sky-400" 
@@ -55,7 +91,7 @@ export const CardAllDataNode = ({ node }) => {
         />
         <DataCard 
           title="ความเร็วลม" 
-          value={node.wind_speed} 
+          value={getValue('wind_speed')} 
           unit="km/h" 
           icon={Wind} 
           iconColor="text-teal-400" 
@@ -63,7 +99,7 @@ export const CardAllDataNode = ({ node }) => {
         />
         <DataCard 
           title="ความเร็วลมกระโชก" 
-          value={node.wind_gust} 
+          value={getValue('wind_gust')} 
           unit="km/h" 
           icon={Wind} 
           iconColor="text-cyan-400" 
@@ -71,7 +107,7 @@ export const CardAllDataNode = ({ node }) => {
         />
         <DataCard 
           title="ทิศทางลม" 
-          value={node.wind_dir} 
+          value={node.wind_dir} // Not in API response
           unit="°" 
           icon={Navigation} 
           iconColor="text-amber-400" 
@@ -79,15 +115,15 @@ export const CardAllDataNode = ({ node }) => {
         />
         <DataCard 
           title="ความกดอากาศ" 
-          value={node.pressure} 
+          value={getValue('pressure')} 
           unit="hPa" 
           icon={Gauge} 
           iconColor="text-indigo-400" 
           bgLight="bg-indigo-500/10 group-hover:bg-indigo-500/20" 
         />
         <DataCard 
-          title="ปริมาณน้ำฝน (1ชั่วโมง)" 
-          value={node.rain_1h} 
+          title="ปริมาณน้ำฝน" 
+          value={getValue('rain_1h')} 
           unit="mm/h" 
           icon={Umbrella} 
           iconColor="text-purple-400" 
@@ -95,7 +131,7 @@ export const CardAllDataNode = ({ node }) => {
         />
         <DataCard 
           title="ปริมาณน้ำฝน (24ชั่วโมง)" 
-          value={node.rain_24h} 
+          value={getValue('rain_24h')} 
           unit="mm/24h" 
           icon={Umbrella} 
           iconColor="text-violet-400" 
