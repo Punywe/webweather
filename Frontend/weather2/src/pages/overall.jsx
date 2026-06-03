@@ -8,9 +8,11 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 // Helper function to calculate MAE & MAPE of forecast sources against real Node measurements
 const computeErrors = (data, suffix) => {
-    let tmdMaeSum = 0, tmdMapeSum = 0, tmdCount = 0, tmdMapeCount = 0;
-    let msnMaeSum = 0, msnMapeSum = 0, msnCount = 0, msnMapeCount = 0;
-    let weatherMaeSum = 0, weatherMapeSum = 0, weatherCount = 0, weatherMapeCount = 0;
+    let tmdMaeSum = 0, tmdCount = 0;
+    let msnMaeSum = 0, msnCount = 0;
+    let weatherMaeSum = 0, weatherCount = 0;
+    
+    let tmdNodeSum = 0, msnNodeSum = 0, weatherNodeSum = 0;
 
     data.forEach(d => {
         const nodeVal = d[`Node${suffix}`] !== null && d[`Node${suffix}`] !== undefined ? Number(d[`Node${suffix}`]) : null;
@@ -23,46 +25,37 @@ const computeErrors = (data, suffix) => {
         if (tmdVal !== null && !isNaN(tmdVal)) {
             const err = Math.abs(nodeVal - tmdVal);
             tmdMaeSum += err;
+            tmdNodeSum += Math.abs(nodeVal);
             tmdCount++;
-            if (nodeVal !== 0) {
-                tmdMapeSum += err / Math.abs(nodeVal);
-                tmdMapeCount++;
-            }
         }
 
         if (msnVal !== null && !isNaN(msnVal)) {
             const err = Math.abs(nodeVal - msnVal);
             msnMaeSum += err;
+            msnNodeSum += Math.abs(nodeVal);
             msnCount++;
-            if (nodeVal !== 0) {
-                msnMapeSum += err / Math.abs(nodeVal);
-                msnMapeCount++;
-            }
         }
 
         if (weatherVal !== null && !isNaN(weatherVal)) {
             const err = Math.abs(nodeVal - weatherVal);
             weatherMaeSum += err;
+            weatherNodeSum += Math.abs(nodeVal);
             weatherCount++;
-            if (nodeVal !== 0) {
-                weatherMapeSum += err / Math.abs(nodeVal);
-                weatherMapeCount++;
-            }
         }
     });
 
     return {
         TMD: {
             MAE: tmdCount > 0 ? tmdMaeSum / tmdCount : null,
-            MAPE: tmdMapeCount > 0 ? (tmdMapeSum / tmdMapeCount) * 100 : null
+            MAPE: tmdCount > 0 && tmdNodeSum > 0 ? Math.min(100, Math.max(0, (tmdMaeSum / tmdNodeSum) * 100)) : null
         },
         MSN: {
             MAE: msnCount > 0 ? msnMaeSum / msnCount : null,
-            MAPE: msnMapeCount > 0 ? (msnMapeSum / msnMapeCount) * 100 : null
+            MAPE: msnCount > 0 && msnNodeSum > 0 ? Math.min(100, Math.max(0, (msnMaeSum / msnNodeSum) * 100)) : null
         },
         Weather: {
             MAE: weatherCount > 0 ? weatherMaeSum / weatherCount : null,
-            MAPE: weatherMapeCount > 0 ? (weatherMapeSum / weatherMapeCount) * 100 : null
+            MAPE: weatherCount > 0 && weatherNodeSum > 0 ? Math.min(100, Math.max(0, (weatherMaeSum / weatherNodeSum) * 100)) : null
         }
     };
 };
@@ -262,7 +255,50 @@ const Overall = () => {
         </div>
     );
 
-    const OverviewItem = ({ title, unit, icon: Icon, colorClass, tmdErr, msnErr, weatherErr }) => {
+    const OverviewItem = ({ title, unit, icon: Icon, colorClass, tmdErr, msnErr, weatherErr, nodeVal, tmdVal, msnVal, weatherVal }) => {
+        const showValues = tmdErr === undefined && tmdVal !== undefined;
+
+        const renderMetricCard = (label, err, borderHoverClass) => (
+            <div className={`flex flex-col bg-[#1E293B]/60 p-4 rounded-xl border border-[#334155]/60 hover:${borderHoverClass} transition-colors`}>
+                <span className="text-xs text-gray-400 mb-2 font-medium">{label}</span>
+                <div className="flex justify-between items-center">
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-lg font-bold text-gray-100">
+                            {err && err.MAE !== null ? `${formatValue(err.MAE)}` : 'N/A'}
+                        </span>
+                        <span className="text-xs text-gray-500">{unit}</span>
+                    </div>
+                    {err && err.MAPE !== null && (
+                        <div className="flex items-center gap-1 text-gray-300 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 border border-white/10">
+                            <span className="text-gray-400">({formatValue(err.MAPE)}%)</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+
+        const renderValueCard = (label, val, borderHoverClass) => {
+            const diff = nodeVal != null && val != null ? Math.abs(nodeVal - val) : null;
+            return (
+                <div className={`flex flex-col bg-[#1E293B]/60 p-4 rounded-xl border border-[#334155]/60 hover:${borderHoverClass} transition-colors`}>
+                    <span className="text-xs text-gray-400 mb-2 font-medium">{label}</span>
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-baseline gap-1">
+                            <span className="text-lg font-bold text-gray-100">
+                                {val != null && val !== 0 ? formatValue(val) : 'N/A'}
+                            </span>
+                            <span className="text-xs text-gray-500">{unit}</span>
+                        </div>
+                        {diff !== null && nodeVal != null && val != null && val !== 0 && (
+                            <div className="flex items-center gap-1 text-gray-300 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 border border-white/10">
+                                <span className="text-gray-400">±{formatValue(diff)}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
         return (
             <div className="flex flex-col xl:flex-row xl:items-center justify-between p-5 border-b border-[#334155]/40 last:border-0 hover:bg-[#0F172A]/40 transition-colors">
                 <div className="flex items-center gap-3 mb-4 xl:mb-0 w-48">
@@ -273,58 +309,24 @@ const Overall = () => {
                 </div>
                 
                 <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-4">
-                     <div className="flex flex-col bg-[#1E293B]/60 p-4 rounded-xl border border-[#334155]/60 hover:border-blue-500/30 transition-colors">
-                         <span className="text-xs text-gray-400 mb-2 font-medium">ค่าคลาดเคลื่อน กรมอุตุฯ (TMD)</span>
-                         <div className="flex justify-between items-center">
-                             <div className="flex items-baseline gap-1">
-                                 <span className="text-lg font-bold text-gray-100">
-                                     {tmdErr && tmdErr.MAE !== null ? `${formatValue(tmdErr.MAE)}` : 'N/A'}
-                                 </span>
-                                 <span className="text-xs text-gray-500">vs TMD ({unit})</span>
-                             </div>
-                             {tmdErr && tmdErr.MAPE !== null && (
-                                 <div className="flex items-center gap-1 text-gray-300 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 border border-white/10">
-                                     <span className="text-gray-400">({formatValue(tmdErr.MAPE)}%)</span>
-                                 </div>
-                             )}
-                         </div>
-                     </div>
-                     <div className="flex flex-col bg-[#1E293B]/60 p-4 rounded-xl border border-[#334155]/60 hover:border-emerald-500/30 transition-colors">
-                         <span className="text-xs text-gray-400 mb-2 font-medium">ค่าคลาดเคลื่อน MSN</span>
-                         <div className="flex justify-between items-center">
-                             <div className="flex items-baseline gap-1">
-                                 <span className="text-lg font-bold text-gray-100">
-                                     {msnErr && msnErr.MAE !== null ? `${formatValue(msnErr.MAE)}` : 'N/A'}
-                                 </span>
-                                 <span className="text-xs text-gray-500">vs MSN ({unit})</span>
-                             </div>
-                             {msnErr && msnErr.MAPE !== null && (
-                                 <div className="flex items-center gap-1 text-gray-300 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 border border-white/10">
-                                     <span className="text-gray-400">({formatValue(msnErr.MAPE)}%)</span>
-                                 </div>
-                             )}
-                         </div>
-                     </div>
-                     <div className="flex flex-col bg-[#1E293B]/60 p-4 rounded-xl border border-[#334155]/60 hover:border-cyan-500/30 transition-colors">
-                         <span className="text-xs text-gray-400 mb-2 font-medium">ค่าคลาดเคลื่อน Weather.com</span>
-                         <div className="flex justify-between items-center">
-                             <div className="flex items-baseline gap-1">
-                                 <span className="text-lg font-bold text-gray-100">
-                                     {weatherErr && weatherErr.MAE !== null ? `${formatValue(weatherErr.MAE)}` : 'N/A'}
-                                 </span>
-                                 <span className="text-xs text-gray-500">vs Weather ({unit})</span>
-                             </div>
-                             {weatherErr && weatherErr.MAPE !== null && (
-                                 <div className="flex items-center gap-1 text-gray-300 bg-white/5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 border border-white/10">
-                                     <span className="text-gray-400">({formatValue(weatherErr.MAPE)}%)</span>
-                                 </div>
-                             )}
-                         </div>
-                     </div>
+                    {showValues ? (
+                        <>
+                            {renderValueCard('กรมอุตุฯ (TMD)', tmdVal, 'border-blue-500/30')}
+                            {renderValueCard('MSN', msnVal, 'border-emerald-500/30')}
+                            {renderValueCard('Weather.com', weatherVal, 'border-cyan-500/30')}
+                        </>
+                    ) : (
+                        <>
+                            {renderMetricCard('ค่าคลาดเคลื่อน กรมอุตุฯ (TMD)', tmdErr, 'border-blue-500/30')}
+                            {renderMetricCard('ค่าคลาดเคลื่อน MSN', msnErr, 'border-emerald-500/30')}
+                            {renderMetricCard('ค่าคลาดเคลื่อน Weather.com', weatherErr, 'border-cyan-500/30')}
+                        </>
+                    )}
                 </div>
             </div>
         );
     };
+
 
     const tempChartData = [
         { name: 'Node', value: averages.temp, color: '#3B82F6' },

@@ -1,7 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from shared.database import get_connection
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import pymysql.cursors
+
+THAILAND_TZ = timezone(timedelta(hours=7))
 
 router = APIRouter(
     prefix="/get24hOverall",
@@ -14,7 +16,7 @@ async def get_24h_overall(limit_hours: int = 24):
     try:
         cursor = conn.cursor(pymysql.cursors.DictCursor)
 
-        latest_time = datetime.now()
+        latest_time = datetime.now(THAILAND_TZ).replace(tzinfo=None)
         start_time = latest_time - timedelta(hours=limit_hours)
 
         hourly_data = {}
@@ -25,7 +27,7 @@ async def get_24h_overall(limit_hours: int = 24):
         while curr_time <= latest_time + timedelta(hours=1):
             hour_str = curr_time.strftime('%Y-%m-%d %H:00:00')
             hourly_data[hour_str] = {
-                "time": curr_time.strftime('%H:%M'),
+                "time": curr_time.strftime('%H:00'),
                 "full_time": hour_str,
                 "Node_temp": None, "Node_hum": None, "Node_wind": None,
                 "TMD_temp": None, "TMD_hum": None, "TMD_wind": None,

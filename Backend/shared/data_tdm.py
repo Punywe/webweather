@@ -1,7 +1,7 @@
 import os
 import json
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Tuple
 from pydantic import BaseModel
 
@@ -151,7 +151,8 @@ def normalize_latest_1(raw: dict, query: dict) -> dict:
 
 
 def get_latest_1_hourly(lat: float, lon: float) -> dict:
-    now = datetime.utcnow()
+    THAILAND_TZ = timezone(timedelta(hours=7))
+    now = datetime.now(THAILAND_TZ)
     date_str = now.strftime("%Y-%m-%d")
     hour = now.hour
 
