@@ -370,6 +370,7 @@ const Overall = () => {
                     <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center gap-10 text-[13px] font-bold uppercase tracking-widest text-gray-400">
                         <Link to="/" className="cursor-pointer hover:text-white transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-500 after:transition-all hover:after:w-full">DASHBOARD</Link>
                         <span className="text-white relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-blue-500">OVERALL</span>
+                        <Link to="/about-us" className="cursor-pointer hover:text-white transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-500 after:transition-all hover:after:w-full">เกี่ยวกับโครงการ</Link>
                     </div>
 
                     <div className='hidden md:flex items-center gap-4'>
@@ -396,6 +397,7 @@ const Overall = () => {
                         <div className="flex flex-col gap-4 text-sm font-bold uppercase tracking-widest text-gray-400 pl-2">
                             <Link to="/" className="hover:text-white transition-colors">DASHBOARD</Link>
                             <span className="text-white">OVERALL</span>
+                            <Link to="/about-us" className="hover:text-white transition-colors">เกี่ยวกับโครงการ</Link>
                         </div>
 
                         <div className="flex flex-col gap-4 pt-4 border-t border-white/5">

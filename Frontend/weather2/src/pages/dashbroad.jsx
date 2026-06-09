@@ -211,6 +211,7 @@ const Dashboard = () => {
                         <p onClick={() => scrollToSection('weather')} className="cursor-pointer hover:text-white transition-colors">WEATHER</p>
                         <p onClick={() => scrollToSection('msn')} className="cursor-pointer hover:text-white transition-colors">MSN</p>
                         <Link to="/overall" className="hover:text-white transition-colors">ภาพรวม</Link>
+                        <Link to="/about-us" className="hover:text-white transition-colors">เกี่ยวกับโครงการ</Link>
                     </div>
 
                     <div className='hidden md:flex items-center gap-6'>
@@ -257,6 +258,7 @@ const Dashboard = () => {
                             <p onClick={() => { scrollToSection('weather'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">Weather.com</p>
                             <p onClick={() => { scrollToSection('msn'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">MSN Weather</p>
                             <Link to="/overall" className="hover:text-white transition-colors">ภาพรวม</Link>
+                            <Link to="/about-us" className="hover:text-white transition-colors">เกี่ยวกับโครงการ</Link>
                             {loggedInUser?.role === 'admin' && (
                                 <Link to="/addnode" className="text-emerald-400 hover:text-emerald-300 transition-colors">ADMIN</Link>
                             )}
