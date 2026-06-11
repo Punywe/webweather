@@ -22,7 +22,8 @@ pipeline {
                     echo "Branch      : $BRANCH_NAME"
                     echo "Deploy Dir  : $WEATHER_DEPLOY_DIR"
                     echo "Health URL  : $WEATHER_SERVER_HEALTH_URL"
-                    echo "Deploy Dir exists: $([ -d "$WEATHER_DEPLOY_DIR" ] && echo YES || echo NO)"
+                    echo "Deploy Dir is a directory: $([ -d "$WEATHER_DEPLOY_DIR" ] && echo YES || echo NO)"
+                    echo "Deploy Dir is a file: $([ -f "$WEATHER_DEPLOY_DIR" ] && echo YES || echo NO)"
                     echo "==============================="
                 '''
             }
@@ -56,7 +57,19 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                    cp $WEATHER_DEPLOY_DIR/.env $WORKSPACE/.env &&
+                    if [ -f "$WEATHER_DEPLOY_DIR" ]; then
+                        echo "Copying .env from secret file..."
+                        cp "$WEATHER_DEPLOY_DIR" "$WORKSPACE/.env"
+                    elif [ -d "$WEATHER_DEPLOY_DIR" ] && [ -f "$WEATHER_DEPLOY_DIR/.env" ]; then
+                        echo "Copying .env from directory..."
+                        cp "$WEATHER_DEPLOY_DIR/.env" "$WORKSPACE/.env"
+                    elif [ -f "$WORKSPACE/Frontend/weather2/.env" ]; then
+                        echo "WARNING: WEATHER_DEPLOY_DIR not found/invalid. Falling back to Frontend/.env..."
+                        cp "$WORKSPACE/Frontend/weather2/.env" "$WORKSPACE/.env"
+                    else
+                        echo "WARNING: No .env found. Creating empty .env..."
+                        touch "$WORKSPACE/.env"
+                    fi
                     docker compose -p webweather build --no-cache &&
                     docker compose -p webweather up -d --remove-orphans &&
                     docker image prune -f
