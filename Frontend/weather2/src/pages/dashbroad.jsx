@@ -11,7 +11,7 @@ import { ChartWidgetMSN } from '/src/components/ChartWidgetMSN.jsx'
 import { CardCurrentMSN } from '/src/components/CardCurrentMSN.jsx'
 import { CardCurrentWeather } from '/src/components/CardCurrentWeather.jsx'
 import { ChartWidgetWeather } from '/src/components/ChartWidgetWeather.jsx'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Lock, User, Download, ArrowDown } from 'lucide-react'
 import { RegisterModal } from '/src/components/RegisterModal.jsx'
 import { LoginModal } from '/src/components/LoginModal.jsx'
 import { DownloadModal } from '/src/components/DownloadModal.jsx'
@@ -161,7 +161,7 @@ const Dashboard = () => {
                             className="whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-500 hover:text-slate-300 hover:bg-white/5 flex items-center gap-1 transition-all duration-300 shrink-0"
                         >
                             <span>{opt.label}</span>
-                            <span className="text-[9px]">🔒</span>
+                            <Lock size={10} className="text-yellow-500/70" />
                         </button>
                     ))}
                     <button
@@ -177,7 +177,7 @@ const Dashboard = () => {
                             className="whitespace-nowrap px-3 py-1.5 rounded-lg text-[11px] font-bold text-slate-500 hover:text-slate-300 hover:bg-white/5 flex items-center gap-1 transition-all duration-300 shrink-0"
                         >
                             <span>{opt.label}</span>
-                            <span className="text-[9px]">🔒</span>
+                            <Lock size={10} className="text-yellow-500/70" />
                         </button>
                     ))}
                 </div>
@@ -220,7 +220,7 @@ const Dashboard = () => {
                             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-300 transition-all active:scale-95"
                         >
                             <span>DOWNLOAD</span>
-                            {!loggedInUser ? <span className="text-yellow-500">🔒</span> : <span className="text-blue-400">↓</span>}
+                            {!loggedInUser ? <Lock size={12} className="text-yellow-500/80" /> : <ArrowDown size={12} className="text-blue-400" />}
                         </button>
                         
                         {loggedInUser?.role === 'admin' && (
@@ -229,7 +229,7 @@ const Dashboard = () => {
                         
                         {loggedInUser ? (
                             <div className="flex items-center gap-3 bg-white/5 px-3 py-1.5 rounded-xl border border-white/10">
-                                <div className="w-6 h-6 bg-emerald-500/20 rounded-lg flex items-center justify-center text-[10px]">👤</div>
+                                <div className="w-6 h-6 bg-emerald-500/20 rounded-lg flex items-center justify-center"><User size={12} className="text-emerald-400" /></div>
                                 <div className="flex flex-col">
                                     <span className="text-[9px] font-bold text-gray-200 leading-none">{loggedInUser.username}</span>
                                     <button onClick={() => handleLogout()} className="text-[8px] text-gray-500 hover:text-red-400 font-bold uppercase mt-0.5 text-left">LOGOUT</button>
@@ -252,7 +252,7 @@ const Dashboard = () => {
                 {/* Mobile Menu Dropdown */}
                 {isMobileMenuOpen && (
                     <div className="md:hidden flex flex-col gap-6 pb-8 pt-4 border-t border-white/5 animate-msn-in">
-                        <div className="flex flex-col gap-4 text-sm font-bold uppercase tracking-widest text-gray-400 pl-2">
+                        <div className="flex flex-col gap-4 text-sm font-bold uppercase tracking-widest text-gray-200 pl-2">
                             <p onClick={() => { scrollToSection('home'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">หน้าแรก</p>
                             <p onClick={() => { scrollToSection('tmd'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">กรมอุตุนิยมวิทยา</p>
                             <p onClick={() => { scrollToSection('weather'); setIsMobileMenuOpen(false); }} className="hover:text-white transition-colors cursor-pointer">Weather.com</p>
@@ -270,13 +270,13 @@ const Dashboard = () => {
                                 className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest text-white transition-all active:scale-95"
                             >
                                 <span>DOWNLOAD DATA</span>
-                                {!loggedInUser ? <span className="text-yellow-500">🔒</span> : <span className="text-blue-400 text-lg">↓</span>}
+                                {!loggedInUser ? <Lock size={14} className="text-yellow-500/80" /> : <ArrowDown size={16} className="text-blue-400" />}
                             </button>
 
                             {loggedInUser ? (
                                 <div className="flex items-center justify-between px-6 py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center text-xs">👤</div>
+                                        <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center"><User size={14} className="text-emerald-400" /></div>
                                         <span className="text-xs font-bold text-gray-200">{loggedInUser.username}</span>
                                     </div>
                                     <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="text-[10px] text-rose-400 font-bold uppercase tracking-widest">LOGOUT</button>
@@ -389,7 +389,7 @@ const Dashboard = () => {
                                             className="group flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/20 hover:border-blue-500/40 text-xs font-bold text-blue-400 hover:text-blue-300 uppercase tracking-widest transition-all duration-300 active:scale-95 shadow-[0_0_15px_rgba(59,130,246,0.1)] whitespace-nowrap self-start lg:self-auto"
                                         >
                                             <span>รายละเอียดเพิ่มเติม</span>
-                                            <span className="text-yellow-500">🔒</span>
+                                            <Lock size={14} className="text-yellow-500/80" />
                                         </button>
                                     )}
                                 </div>

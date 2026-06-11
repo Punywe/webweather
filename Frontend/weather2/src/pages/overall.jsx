@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Menu, X, ArrowLeft, Thermometer, Droplets, Wind, ArrowUpRight, ArrowDownRight, Minus, BarChart3, Database, CloudSun, Award, Sparkles } from 'lucide-react';
+import { Menu, X, ArrowLeft, Thermometer, Droplets, Wind, ArrowUpRight, ArrowDownRight, Minus, BarChart3, Database, CloudSun, Award, Sparkles, Lock, User, ArrowDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { LoginModal } from '../components/LoginModal';
 import { RegisterModal } from '../components/RegisterModal';
@@ -359,7 +359,7 @@ const Overall = () => {
             <nav className='fixed top-6 z-50 msn-glass w-[90%] max-w-6xl rounded-2xl flex flex-col px-6 transition-all duration-500 hover:border-white/20'>
                 <div className="w-full flex justify-between items-center h-16">
                     <div className="flex items-center gap-3 group cursor-pointer">
-                        <Link to="/" className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-600/20 group-hover:rotate-12 transition-transform">
+                        <Link to="/" className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-600/20 hover:rotate-12 transition-transform">
                              <ArrowLeft size={18} className="text-white" />
                         </Link>
                         <div className="text-lg font-bold tracking-tight text-white">
@@ -368,8 +368,8 @@ const Overall = () => {
                     </div>
 
                     <div className="hidden md:flex absolute left-1/2 transform -translate-x-1/2 items-center gap-10 text-[13px] font-bold uppercase tracking-widest text-gray-400">
-                        <Link to="/" className="cursor-pointer hover:text-white transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-500 after:transition-all hover:after:w-full">DASHBOARD</Link>
-                        <span className="text-white relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-blue-500">OVERALL</span>
+                        <Link to="/" className="cursor-pointer hover:text-white transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-500 after:transition-all hover:after:w-full">หน้าหลัก</Link>
+                        <span className="text-white relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-blue-500">ภาพรวม</span>
                         <Link to="/about-us" className="cursor-pointer hover:text-white transition-colors relative after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-0 after:h-0.5 after:bg-blue-500 after:transition-all hover:after:w-full">เกี่ยวกับโครงการ</Link>
                     </div>
 
@@ -379,11 +379,8 @@ const Overall = () => {
                             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-gray-300 transition-all active:scale-95"
                         >
                             <span>DOWNLOAD</span>
-                            {!loggedInUser ? <span className="text-yellow-500">🔒</span> : <span className="text-blue-400">↓</span>}
+                            {!loggedInUser ? <Lock size={12} className="text-yellow-500/80" /> : <ArrowDown size={12} className="text-blue-400" />}
                         </button>
-                        <div className="px-4 py-2 rounded-xl bg-blue-600/10 border border-blue-500/20 text-[10px] font-bold uppercase tracking-widest text-blue-400">
-                            Global Comparisons
-                        </div>
                     </div>
 
                     <button className="md:hidden text-gray-400 p-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
@@ -394,25 +391,25 @@ const Overall = () => {
                 {/* Mobile Menu Dropdown */}
                 {isMobileMenuOpen && (
                     <div className="md:hidden flex flex-col gap-6 pb-8 pt-4 border-t border-white/5 animate-msn-in">
-                        <div className="flex flex-col gap-4 text-sm font-bold uppercase tracking-widest text-gray-400 pl-2">
-                            <Link to="/" className="hover:text-white transition-colors">DASHBOARD</Link>
-                            <span className="text-white">OVERALL</span>
+                        <div className="flex flex-col gap-4 text-sm font-bold uppercase tracking-widest text-gray-200 pl-2">
+                            <Link to="/" className="hover:text-white transition-colors">หน้าหลัก</Link>
+                            <span className="text-white">ภาพรวม</span>
                             <Link to="/about-us" className="hover:text-white transition-colors">เกี่ยวกับโครงการ</Link>
                         </div>
 
-                        <div className="flex flex-col gap-4 pt-4 border-t border-white/5">
+                        <div className="flex flex-col gap-4 pt-4 border-t border-white/10">
                             <button 
                                 onClick={() => { loggedInUser ? setIsDownloadOpen(true) : setIsLoginOpen(true); setIsMobileMenuOpen(false); }}
                                 className="w-full flex items-center justify-between px-6 py-4 rounded-2xl bg-white/5 border border-white/10 text-xs font-bold uppercase tracking-widest text-white transition-all active:scale-95"
                             >
                                 <span>DOWNLOAD DATA</span>
-                                {!loggedInUser ? <span className="text-yellow-500">🔒</span> : <span className="text-blue-400 text-lg">↓</span>}
+                                {!loggedInUser ? <Lock size={14} className="text-yellow-500/80" /> : <ArrowDown size={16} className="text-blue-400" />}
                             </button>
 
                             {loggedInUser ? (
                                 <div className="flex items-center justify-between px-6 py-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
                                     <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center text-xs">👤</div>
+                                        <div className="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center"><User size={14} className="text-emerald-400" /></div>
                                         <span className="text-xs font-bold text-gray-200">{loggedInUser.username}</span>
                                     </div>
                                     <button onClick={() => { localStorage.removeItem('weather_user'); window.location.reload(); }} className="text-[10px] text-rose-400 font-bold uppercase tracking-widest">LOGOUT</button>
@@ -461,12 +458,12 @@ const Overall = () => {
                                         <BarChart3 size={24} className="text-white" />
                                     </div>
                                     <div>
-                                        <h3 className="text-xl font-bold text-white tracking-tight">ภาพรวมความคลาดเคลื่อนสะสม (MAE / MAPE)</h3>
+                                        <h3 className="text-xl font-bold text-white tracking-tight">การเปรียบเทียบความแตกต่างของข้อมูลแต่ละแหล่งที่มา</h3>
                                         <p className="text-blue-100 text-xs font-medium">วิเคราะห์จากข้อมูลสภาพอากาศในช่วง 24 ชั่วโมงที่ผ่านมาเทียบกับสถานีตรวจวัดจริง</p>
                                     </div>
                                 </div>
                                 <div className="px-4 py-2 bg-black/20 rounded-xl border border-white/10 text-[10px] font-bold text-white uppercase tracking-widest">
-                                    Last Analysis: {new Date().toLocaleTimeString()}
+                                    อัปเดตล่าสุด : {new Date().toLocaleTimeString()}
                                 </div>
                             </div>
 
@@ -510,11 +507,11 @@ const Overall = () => {
                                     </div>
                                     <div>
                                         <h3 className="text-xl font-bold text-white tracking-tight">ภาพรวมส่วนต่างเทียบข้อมูลล่าสุด</h3>
-                                        <p className="text-blue-100 text-xs font-medium">เปรียบเทียบค่าเฉลี่ยสถานี เทียบกับ API ภายนอก</p>
+                                        <p className="text-blue-100 text-xs font-medium">เปรียบเทียบค่าเฉลี่ยสถานีเทียบกับข้อมูลภายนอก</p>
                                     </div>
                                 </div>
                                 <div className="px-4 py-2 bg-black/20 rounded-xl border border-white/10 text-[10px] font-bold text-white uppercase tracking-widest">
-                                    Last Analysis: {new Date().toLocaleTimeString()}
+                                    อัปเดตล่าสุด : {new Date().toLocaleTimeString()}
                                 </div>
                             </div>
 

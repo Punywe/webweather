@@ -261,28 +261,28 @@ const AboutUs = () => {
             <div className='w-[90%] md:w-[70%] max-w-5xl h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent my-4'></div>
 
             {/* Interactive Dynamic Tab Container */}
-            <div className="w-[90%] md:w-[70%] max-w-5xl flex flex-wrap gap-1 md:gap-2 justify-center bg-white/5 backdrop-blur-md rounded-2xl p-1.5 border border-white/5 shadow-inner">
+            <div className="w-[90%] md:w-[70%] max-w-5xl flex flex-nowrap overflow-x-auto justify-start md:justify-center gap-1 md:gap-2 bg-white/5 backdrop-blur-md rounded-2xl p-1.5 border border-white/5 shadow-inner">
                 <button
                     onClick={() => setActiveTab('objectives')}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 cursor-pointer ${activeTab === 'objectives' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 cursor-pointer flex-shrink-0 ${activeTab === 'objectives' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                 >
                     วัตถุประสงค์
                 </button>
                 <button
                     onClick={() => setActiveTab('goals')}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 cursor-pointer ${activeTab === 'goals' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 cursor-pointer flex-shrink-0 ${activeTab === 'goals' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                 >
                     เป้าหมาย
                 </button>
                 <button
                     onClick={() => setActiveTab('targets')}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 cursor-pointer ${activeTab === 'targets' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 cursor-pointer flex-shrink-0 ${activeTab === 'targets' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                 >
                     กลุ่มเป้าหมาย
                 </button>
                 <button
                     onClick={() => setActiveTab('location')}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 cursor-pointer ${activeTab === 'location' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
+                    className={`flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-xl text-xs md:text-sm font-semibold transition-all duration-300 cursor-pointer flex-shrink-0 ${activeTab === 'location' ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
                 >
                     พื้นที่ใช้งาน
                 </button>
