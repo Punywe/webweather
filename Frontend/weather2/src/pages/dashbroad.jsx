@@ -201,7 +201,7 @@ const Dashboard = () => {
                             <span className="font-bold text-white">L</span>
                         </div>
                         <div className="text-lg font-bold tracking-tight text-white">
-                            LookData <span className="text-blue-400">Weather</span>
+                            LookDataWS <span className="text-blue-400">Weather</span>
                         </div>
                     </div>
 
