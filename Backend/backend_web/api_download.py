@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Response
 from fastapi.responses import StreamingResponse
 from shared.database import get_connection
 import pymysql.cursors
@@ -59,15 +59,12 @@ async def get_download_limits():
     finally:
         conn.close()
 
-def generate_csv_stream(data, fieldnames):
+def generate_csv_data(data, fieldnames):
     stream = io.StringIO()
+    # We write the UTF-8 BOM first to fix Excel decoding Thai characters
+    stream.write('\ufeff')
     writer = csv.DictWriter(stream, fieldnames=fieldnames)
     writer.writeheader()
-    
-    # We yield the header first WITH the UTF-8 BOM to fix Excel decoding Thai characters
-    yield '\ufeff' + stream.getvalue()
-    stream.seek(0)
-    stream.truncate(0)
 
     for row in data:
         # Convert any None values to 'ไม่มีข้อมูล' or empty string
@@ -75,9 +72,7 @@ def generate_csv_stream(data, fieldnames):
             k: ("ไม่มีข้อมูล" if v is None else v) for k, v in row.items()
         }
         writer.writerow(cleaned_row)
-        yield stream.getvalue()
-        stream.seek(0)
-        stream.truncate(0)
+    return stream.getvalue()
 
 @router.get("/")
 async def download_csv_data(
@@ -131,12 +126,16 @@ async def download_csv_data(
             # Still return an empty CSV with just headers if no data
             data = []
         
-        response = StreamingResponse(
-            generate_csv_stream(data, header),
+        csv_content = generate_csv_data(data, header)
+        csv_bytes = csv_content.encode('utf-8')
+        
+        response = Response(
+            content=csv_bytes,
             media_type="text/csv"
         )
         encoded_filename = urllib.parse.quote(filename)
         response.headers["Content-Disposition"] = f"attachment; filename*=utf-8''{encoded_filename}"
+        response.headers["Content-Length"] = str(len(csv_bytes))
         return response
 
     except Exception as e:

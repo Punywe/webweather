@@ -55,9 +55,45 @@ export const DownloadModal = ({ isOpen, onClose }) => {
         url.searchParams.append('start_date', startDate);
         url.searchParams.append('end_date', endDate);
 
-        // Triggers native browser file download
-        window.location.href = url.toString();
-        onClose();
+        // Fetch the file and trigger download via blob
+        fetch(url.toString())
+            .then(res => {
+                if (!res.ok) {
+                    throw new Error("Failed to download file");
+                }
+                return res.blob();
+            })
+            .then(blob => {
+                const blobUrl = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = blobUrl;
+                
+                // Construct filename matching the backend
+                let filename = '';
+                if (source === 'tmd') {
+                    filename = `TMD_Data_${startDate}_to_${endDate}.csv`;
+                } else if (source === 'msn') {
+                    filename = `MSN_Data_${startDate}_to_${endDate}.csv`;
+                } else if (source === 'node') {
+                    filename = `${selectedNode}_Data_${startDate}_to_${endDate}.csv`;
+                } else if (source === 'weather') {
+                    filename = `WeatherCom_Data_${startDate}_to_${endDate}.csv`;
+                } else {
+                    filename = `Data_${startDate}_to_${endDate}.csv`;
+                }
+
+                link.setAttribute('download', filename);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(blobUrl);
+                onClose();
+            })
+            .catch(err => {
+                console.error("Download error:", err);
+                alert("เกิดข้อผิดพลาดในการดาวน์โหลดข้อมูล กรุณาลองใหม่อีกครั้ง");
+                onClose();
+            });
     };
 
     return (
