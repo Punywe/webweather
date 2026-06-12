@@ -21,7 +21,7 @@ import { Link, useLocation } from 'react-router-dom'
 const Dashboard = () => {
     const location = useLocation()
     const [node, setNode] = useState([])
-    const [selectedNode, setSelectedNode] = useState("สวนทุเรียนแม่แจ๋ว")
+    const [selectedNode, setSelectedNode] = useState("สวนธัญญธร อะโวคาโด")
     const [dataNode, setDataNode] = useState([])
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isStationDropdownOpen, setIsStationDropdownOpen] = useState(false)
