@@ -4,6 +4,7 @@ import Overall from "./pages/overall";
 import AddNode from "./pages/addnode";
 import DetailHour from "./pages/DetailHour";
 import AboutUs from "./pages/about_us";
+import { ThemeToggle } from "./components/ThemeToggle";
 import Lenis from 'lenis'
 import { useEffect } from "react";
 
@@ -35,8 +36,10 @@ function App() {
         <Route path="/detail-hour/:node" element={<DetailHour />} />
         <Route path="/about-us" element={<AboutUs />} />
       </Routes>
+      <ThemeToggle />
     </BrowserRouter>
   )
 }
 
 export default App
+

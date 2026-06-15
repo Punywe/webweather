@@ -60,3 +60,332 @@
     display: none;
   }
 }
+
+/* ==========================================================================
+   Global Theme Switching & Overrides (Slate-100 Support)
+   ========================================================================== */
+
+/* Theme Toggle Button Styles & Animations */
+.theme-toggle-btn {
+  background: rgba(30, 41, 59, 0.75);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.2), 0 8px 10px -6px rgba(59, 130, 246, 0.2);
+  color: #f59e0b;
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 20px 25px -5px rgba(59, 130, 246, 0.4), 0 10px 10px -5px rgba(59, 130, 246, 0.4);
+}
+
+[data-theme="slate-100"] .theme-toggle-btn {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.08);
+  color: #d97706;
+}
+
+[data-theme="slate-100"] .theme-toggle-btn:hover {
+  background: #ffffff;
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.12), 0 10px 10px -5px rgba(15, 23, 42, 0.12);
+}
+
+.theme-icon-spin {
+  animation: theme-spin-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes theme-spin-in {
+  from {
+    transform: rotate(-120deg) scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+/* --- Light Theme (Slate-100) Styles --- */
+
+[data-theme="slate-100"] body {
+  background: radial-gradient(circle at top right, #f8fafc, #cbd5e1) !important;
+  background-attachment: fixed !important;
+  color: #0f172a !important;
+}
+
+/* Page wrapper background overrides (makes it transparent to show body gradient) */
+[data-theme="slate-100"] .min-h-screen.bg-\[\#0F172A\],
+[data-theme="slate-100"] .w-full.min-h-screen.bg-\[\#0F172A\],
+[data-theme="slate-100"] #home.min-h-screen.bg-\[\#0F172A\] {
+  background-color: transparent !important;
+}
+
+/* Main background overrides (#0F172A) */
+[data-theme="slate-100"] .bg-\[\#0F172A\] {
+  background-color: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+[data-theme="slate-100"] .bg-\[\#0F172A\]\/90 {
+  background-color: rgba(248, 250, 252, 0.9) !important;
+}
+[data-theme="slate-100"] .bg-\[\#0F172A\]\/80 {
+  background-color: rgba(248, 250, 252, 0.8) !important;
+}
+[data-theme="slate-100"] .bg-\[\#0F172A\]\/60 {
+  background-color: rgba(248, 250, 252, 0.6) !important;
+}
+[data-theme="slate-100"] .bg-\[\#0F172A\]\/50 {
+  background-color: rgba(248, 250, 252, 0.5) !important;
+}
+[data-theme="slate-100"] .bg-\[\#0F172A\]\/40 {
+  background-color: rgba(248, 250, 252, 0.4) !important;
+}
+[data-theme="slate-100"] .bg-\[\#0F172A\]\/30 {
+  background-color: rgba(248, 250, 252, 0.3) !important;
+}
+
+/* Dark slate cards background overrides (#1E293B) */
+[data-theme="slate-100"] .bg-\[\#1E293B\] {
+  background-color: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+[data-theme="slate-100"] .bg-\[\#1E293B\]\/80 {
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+[data-theme="slate-100"] .bg-\[\#1E293B\]\/70 {
+  background-color: rgba(255, 255, 255, 0.75) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+[data-theme="slate-100"] .bg-\[\#1E293B\]\/60 {
+  background-color: rgba(255, 255, 255, 0.65) !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Hover background overrides */
+[data-theme="slate-100"] .hover\:bg-\[\#0F172A\]\/30:hover {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+}
+[data-theme="slate-100"] .hover\:bg-\[\#0F172A\]\/40:hover {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* White bg/hover overrides */
+[data-theme="slate-100"] .bg-white\/5 {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+}
+[data-theme="slate-100"] .bg-white\/10 {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+}
+[data-theme="slate-100"] .bg-white\/20 {
+  background-color: rgba(15, 23, 42, 0.12) !important;
+}
+[data-theme="slate-100"] .hover\:bg-white\/5:hover {
+  background-color: rgba(15, 23, 42, 0.04) !important;
+}
+[data-theme="slate-100"] .hover\:bg-white\/10:hover {
+  background-color: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Black bg/hover overrides */
+[data-theme="slate-100"] .bg-black\/20 {
+  background-color: rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Ambient glows */
+[data-theme="slate-100"] .bg-blue-600\/10 {
+  background-color: rgba(37, 99, 235, 0.05) !important;
+}
+[data-theme="slate-100"] .bg-emerald-600\/5 {
+  background-color: rgba(16, 185, 129, 0.02) !important;
+}
+
+/* Border overrides */
+[data-theme="slate-100"] .border-white\/5,
+[data-theme="slate-100"] .border-white\/10 {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+[data-theme="slate-100"] .border-\[\#334155\] {
+  border-color: rgba(15, 23, 42, 0.15) !important;
+}
+[data-theme="slate-100"] .border-\[\#334155\]\/60 {
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+[data-theme="slate-100"] .border-\[\#334155\]\/50 {
+  border-color: rgba(15, 23, 42, 0.08) !important;
+}
+[data-theme="slate-100"] .border-\[\#334155\]\/40 {
+  border-color: rgba(15, 23, 42, 0.06) !important;
+}
+[data-theme="slate-100"] .border-\[\#334155\]\/30 {
+  border-color: rgba(15, 23, 42, 0.05) !important;
+}
+[data-theme="slate-100"] .border-\[\#0F172A\] {
+  border-color: #f1f5f9 !important;
+}
+
+/* Glassmorphism Effect overrides */
+[data-theme="slate-100"] .msn-glass {
+  background: rgba(255, 255, 255, 0.65) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.05) !important;
+}
+
+[data-theme="slate-100"] .msn-card-hover:hover {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  box-shadow: 0 12px 40px 0 rgba(15, 23, 42, 0.08) !important;
+}
+
+/* General Text overrides */
+[data-theme="slate-100"] .text-white {
+  color: #0f172a !important;
+}
+[data-theme="slate-100"] .text-white\/95,
+[data-theme="slate-100"] .text-white\/90 {
+  color: rgba(15, 23, 42, 0.9) !important;
+}
+[data-theme="slate-100"] .text-white\/85,
+[data-theme="slate-100"] .text-white\/80 {
+  color: rgba(15, 23, 42, 0.8) !important;
+}
+[data-theme="slate-100"] .text-white\/75,
+[data-theme="slate-100"] .text-white\/70 {
+  color: rgba(15, 23, 42, 0.7) !important;
+}
+[data-theme="slate-100"] .text-white\/65,
+[data-theme="slate-100"] .text-white\/60 {
+  color: rgba(15, 23, 42, 0.6) !important;
+}
+[data-theme="slate-100"] .text-white\/55,
+[data-theme="slate-100"] .text-white\/50 {
+  color: rgba(15, 23, 42, 0.5) !important;
+}
+[data-theme="slate-100"] .text-white\/45,
+[data-theme="slate-100"] .text-white\/40 {
+  color: rgba(15, 23, 42, 0.4) !important;
+}
+[data-theme="slate-100"] .text-white\/35,
+[data-theme="slate-100"] .text-white\/30 {
+  color: rgba(15, 23, 42, 0.3) !important;
+}
+[data-theme="slate-100"] .text-white\/25,
+[data-theme="slate-100"] .text-white\/20 {
+  color: rgba(15, 23, 42, 0.2) !important;
+}
+
+[data-theme="slate-100"] .text-gray-100,
+[data-theme="slate-100"] .text-slate-100 {
+  color: #0f172a !important;
+}
+[data-theme="slate-100"] .text-gray-200,
+[data-theme="slate-100"] .text-slate-200 {
+  color: #1e293b !important;
+}
+[data-theme="slate-100"] .text-gray-300,
+[data-theme="slate-100"] .text-slate-300 {
+  color: #334155 !important;
+}
+[data-theme="slate-100"] .text-gray-400,
+[data-theme="slate-100"] .text-slate-400 {
+  color: #475569 !important;
+}
+[data-theme="slate-100"] .text-gray-500,
+[data-theme="slate-100"] .text-slate-500 {
+  color: #64748b !important;
+}
+
+/* Preserve text readability inside colored cards/buttons */
+[data-theme="slate-100"] .bg-blue-600 .text-white,
+[data-theme="slate-100"] .bg-blue-600 *,
+[data-theme="slate-100"] .bg-blue-500 .text-white,
+[data-theme="slate-100"] .bg-blue-500 * {
+  color: #ffffff !important;
+}
+[data-theme="slate-100"] .bg-emerald-500 .text-white,
+[data-theme="slate-100"] .bg-emerald-500 *,
+[data-theme="slate-100"] .bg-emerald-600 .text-white,
+[data-theme="slate-100"] .bg-emerald-600 * {
+  color: #ffffff !important;
+}
+[data-theme="slate-100"] .bg-rose-500 .text-white,
+[data-theme="slate-100"] .bg-rose-500 *,
+[data-theme="slate-100"] .bg-rose-600 .text-white,
+[data-theme="slate-100"] .bg-rose-600 * {
+  color: #ffffff !important;
+}
+[data-theme="slate-100"] .bg-red-500 .text-white,
+[data-theme="slate-100"] .bg-red-500 * {
+  color: #ffffff !important;
+}
+
+/* Specialized color labels for high contrast in light mode */
+[data-theme="slate-100"] .text-blue-400 {
+  color: #2563eb !important;
+}
+[data-theme="slate-100"] .text-emerald-400 {
+  color: #059669 !important;
+}
+[data-theme="slate-100"] .text-orange-400 {
+  color: #ea580c !important;
+}
+[data-theme="slate-100"] .text-teal-400 {
+  color: #0d9488 !important;
+}
+[data-theme="slate-100"] .text-rose-400 {
+  color: #e11d48 !important;
+}
+
+/* Active tab buttons overrides (DetailHour active button) */
+[data-theme="slate-100"] .bg-\[\#FCD34D\] {
+  background-color: #f59e0b !important;
+  color: #0f172a !important;
+  box-shadow: 0 5px 15px rgba(245, 158, 11, 0.2) !important;
+}
+
+/* Navbar list item hover state */
+[data-theme="slate-100"] .hover\:text-white:hover {
+  color: #1e40af !important;
+}
+
+/* Recharts styling for slate-100 theme */
+[data-theme="slate-100"] .recharts-cartesian-axis-tick text {
+  fill: #475569 !important;
+}
+[data-theme="slate-100"] .recharts-cartesian-grid-horizontal line {
+  stroke: rgba(15, 23, 42, 0.08) !important;
+}
+[data-theme="slate-100"] .recharts-tooltip-cursor {
+  stroke: rgba(15, 23, 42, 0.1) !important;
+}
+[data-theme="slate-100"] .recharts-default-tooltip {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(15, 23, 42, 0.15) !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+[data-theme="slate-100"] .recharts-tooltip-label {
+  color: #475569 !important;
+}
+[data-theme="slate-100"] .recharts-active-dot circle {
+  stroke: #f1f5f9 !important;
+}
+
+/* Google-style card background overrides (#202124) */
+[data-theme="slate-100"] .bg-\[\#202124\] {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.05) !important;
+}
+
+/* Selected day background override in CardPre7day (#3C4043) */
+[data-theme="slate-100"] .bg-\[\#3C4043\] {
+  background-color: #cbd5e1 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Day border divider in CardPre7day */
+[data-theme="slate-100"] .border-gray-700\/50 {
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
