@@ -16,6 +16,7 @@ import { RegisterModal } from '/src/components/RegisterModal.jsx'
 import { LoginModal } from '/src/components/LoginModal.jsx'
 import { DownloadModal } from '/src/components/DownloadModal.jsx'
 import { Link, useLocation } from 'react-router-dom'
+import { calcRainTrend3 } from '/src/components/RainIcons.jsx'
 
 
 const Dashboard = () => {
@@ -23,6 +24,7 @@ const Dashboard = () => {
     const [node, setNode] = useState([])
     const [selectedNode, setSelectedNode] = useState("สวนธัญญธร อะโวคาโด")
     const [dataNode, setDataNode] = useState([])
+    const [data7day, setData7day] = useState([])
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
     const [isStationDropdownOpen, setIsStationDropdownOpen] = useState(false)
     const [isRegisterOpen, setIsRegisterOpen] = useState(false)
@@ -81,6 +83,17 @@ const Dashboard = () => {
                 }
             })
     }, [])
+
+    // ดึงข้อมูล 7 วันย้อนหลัง เพื่อคำนวณ RainTrend3 สำหรับ CardToDay
+    useEffect(() => {
+        if (!selectedNode) return
+        fetch(`/api/get7day/${selectedNode}`)
+            .then(res => res.json())
+            .then(data => {
+                setData7day(data.data ?? [])
+            })
+            .catch(() => setData7day([]))
+    }, [selectedNode])
 
     useEffect(() => {
         if (!selectedNode) return;
@@ -346,8 +359,8 @@ const Dashboard = () => {
                     {/* Today Card - Reduced height on mobile */}
                     <div className="lg:col-span-4 h-[320px] lg:h-auto msn-glass rounded-[2rem] p-6 flex items-center justify-center relative overflow-hidden group border border-white/5">
                          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full"></div>
-                         <div className="w-full h-full flex items-center justify-center">
-                            <CardToDay node={dataNode} />
+                     <div className="w-full h-full flex items-center justify-center">
+                            <CardToDay node={dataNode} rainTrend3={calcRainTrend3(data7day)} />
                          </div>
                     </div>
                 </div>

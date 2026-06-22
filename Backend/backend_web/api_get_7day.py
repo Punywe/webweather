@@ -35,7 +35,8 @@ async def get_data_node(name_node: str):
                 AVG(wind_gust) as wind_gust,
                 AVG(humidity) as humidity,
                 AVG(pressure) as pressure,
-                AVG(light) as light
+                AVG(light) as light,
+                MAX(rain_24h) as max_rain
             FROM tb_node
             WHERE node_name = %s
             AND DATE(date_time) < DATE(%s)
@@ -72,7 +73,8 @@ async def get_data_node(name_node: str):
                 "wind_gust": round(row["wind_gust"], 2) if row["wind_gust"] is not None else 0,
                 "humidity": round(row["humidity"], 2) if row["humidity"] is not None else 0,
                 "pressure": round(row["pressure"], 2) if row["pressure"] is not None else 0,
-                "light": round(row["light"], 2) if row["light"] is not None else 0
+                "light": round(row["light"], 2) if row["light"] is not None else 0,
+                "max_rain": round(float(row["max_rain"]), 2) if row["max_rain"] is not None else 0
             })
 
         return {"data": result}
