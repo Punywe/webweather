@@ -6,7 +6,8 @@ import {
   Wind, 
   Navigation, 
   Gauge, 
-  Umbrella
+  Umbrella,
+  Sun
 } from 'lucide-react';
 
 const DataCard = ({ title, value, unit, icon: Icon, iconColor, bgLight }) => (
@@ -84,8 +85,8 @@ export const CardAllDataNode = ({ node }) => {
         <DataCard 
           title="ความเข้มแสง" 
           value={getValue('light')} 
-          unit="" 
-          icon={CloudRain} 
+          unit="lux" 
+          icon={Sun}
           iconColor="text-sky-400" 
           bgLight="bg-sky-500/10 group-hover:bg-sky-500/20" 
         />
